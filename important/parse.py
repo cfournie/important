@@ -76,4 +76,9 @@ def parse_requirements(filename):
                 'Cannot parse %s: file-specified projects unsupported' %
                 requirement.name)
         else:
-            yield requirement.name.lower()
+            yield requirement
+
+
+def parse_requirement_contraints(filename):
+    for requirement in parse_requirements(filename):
+        pass

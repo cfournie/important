@@ -8,6 +8,6 @@ setup(name='important',
       author='Chris Fournier',
       author_email='chris.m.fournier@gmail.com',
       url='',
-      packages=['requirements'],
+      packages=['important'],
       install_requires=['pip', 'click'],
 )

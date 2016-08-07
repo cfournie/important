@@ -1,5 +1,5 @@
 import pytest
-from requirements.parse import _imports, parse_file_imports, parse_dir_imports, \
+from important.parse import _imports, parse_file_imports, parse_dir_imports, \
     parse_requirements, import_statement, RE_SHEBANG
 import stat
 
@@ -86,8 +86,9 @@ pkg2
 pkg3>=1.0,<=2.0
 git+https://myvcs.com/some_dependency@sometag#egg=SomeDependency
     '''.strip())
-    assert list(parse_requirements(str(requirements_file))) == [
-        'pkg1', 'pkg2', 'pkg3', 'somedependency']
+    assert [requirement.name for requirement in
+            parse_requirements(str(requirements_file))] == [
+            'pkg1', 'pkg2', 'pkg3', 'SomeDependency']
 
 
 def test_requirements_without_name(tmpdir):

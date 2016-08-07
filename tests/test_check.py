@@ -1,22 +1,45 @@
 import pytest
+from important.parse import parse_requirements
+from important.check import check_unused_requirements, \
+    frequency_count_imports
 
-from requirements.check import check_unused_requirements, \
-    frequency_count_imports, _get_module_containing_dir
 
-
-def test_unused_requirements(python_file_imports):
-    requirements = ['unused', 'os', 'csv', 'parser']
+def test_unused_requirements(python_file_imports, tmpdir):
+    requirements_file = tmpdir.join('requirements.txt')
+    requirements_file.write('''
+        unused
+        os
+        csv
+        parser'''.strip())
+    requirements = parse_requirements(str(requirements_file))
     assert check_unused_requirements(python_file_imports, requirements) == \
         set(['unused'])
 
-def test_get_module_containing_dir():
-    assert _get_module_containing_dir('os') == 'lib/python3.4'
-    assert _get_module_containing_dir('csv') == 'lib/python3.4'
-    assert _get_module_containing_dir('urllib') == 'lib/python3.4'
-    assert _get_module_containing_dir('unknown') == 'lib/python3.4'
 
-@pytest.mark.xfail
 def test_frequency_count_imports(python_file_imports):
-    assert frequency_count_imports(python_file_imports) == ({
-
-    }, {})
+    assert frequency_count_imports(python_file_imports) == (
+    {
+        'collections': 3,
+        'copy': 3,
+        'csv': 3,
+        'enum': 3,
+        'math': 3,
+        'os': 3,
+        'os.path': 6,
+        'parser': 3,
+        're': 3,
+        'sys': 3,
+        'time': 3
+    },
+    {
+        'collections': 3,
+        'copy': 3,
+        'csv': 3,
+        'enum': 3,
+        'math': 3,
+        'os': 9,
+        'parser': 3,
+        're': 3,
+        'sys': 3,
+        'time': 3
+    })

@@ -1,5 +1,5 @@
 import pytest
-from requirements.parse import import_statement
+from important.parse import import_statement
 
 
 @pytest.fixture
