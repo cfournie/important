@@ -5,18 +5,18 @@ from important.parse import import_statement
 @pytest.fixture
 def python_imports():
     return [
-        ('collections', 2),
-        ('math', 3),
-        ('os', 4),
-        ('copy', 5),
-        ('re', 6),
-        ('time', 6),
-        ('sys', 6),
-        ('os.path', 7),
-        ('os.path', 8),
-        ('parser', 13),
-        ('enum', 16),
-        ('csv', 19),
+        ('collections', 2, 0),
+        ('math', 3, 0),
+        ('os', 4, 0),
+        ('copy', 5, 0),
+        ('re', 6, 0),
+        ('time', 6, 0),
+        ('sys', 6, 0),
+        ('os.path', 7, 0),
+        ('os.path', 8, 0),
+        ('parser', 13, 4),
+        ('enum', 16, 4),
+        ('csv', 19, 8),
     ]
 
 
@@ -24,7 +24,7 @@ def python_imports():
 def python_file_imports(python_imports):
     def create_results(filepath):
         return list(map(
-            lambda x: import_statement(x[0], filepath, x[1]),
+            lambda x: import_statement(x[0], filepath, x[1], x[2]),
             python_imports
         ))
     items = create_results('test.py')

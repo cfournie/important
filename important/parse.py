@@ -6,17 +6,17 @@ from collections import namedtuple
 
 RE_SHEBANG = re.compile('^#![^\n]*python[0-9]?$')
 
-import_statement = namedtuple('import_statement', ['module', 'filename', 'lineno'])
+import_statement = namedtuple('import_statement', ['module', 'filename', 'lineno', 'col_offset'])
 
 
 def _imports(source):
     def _ast_imports(root):
         for node in ast.iter_child_nodes(root):
             if isinstance(node, ast.ImportFrom):
-                yield (node.module, node.lineno)
+                yield (node.module, node.lineno, node.col_offset)
             elif isinstance(node, ast.Import):
                 for name in node.names:
-                    yield (name.name, node.lineno)
+                    yield (name.name, node.lineno, node.col_offset)
             else:
                 for statement in _ast_imports(node):
                     yield statement
@@ -46,8 +46,9 @@ def parse_dir_imports(directory):
             if filename.endswith('.py') or _is_script(filepath):
                 display_filepath = os.path.relpath(filepath, directory)
                 for statement in parse_file_imports(filepath):
-                    module, lineno = statement
-                    yield import_statement(module, display_filepath, lineno)
+                    module, lineno, col_offset = statement
+                    yield import_statement(module, display_filepath, lineno,
+                                           col_offset)
 
 
 def _req_has_file_link(req):
