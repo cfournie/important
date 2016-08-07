@@ -33,5 +33,5 @@ def check_import_frequencies(imports, requirements):
     for module, constraint in constraints.items():
         if module in module_frequencies \
             and not constraint.contains(str(module_frequencies[module])):
-            violations[module] = module_frequencies[module]
+            violations[module] = (constraint, module_frequencies[module])
     return violations
