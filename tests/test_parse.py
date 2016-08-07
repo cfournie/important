@@ -111,14 +111,3 @@ def test_requirements_editable(tmpdir):
         list(parse_requirements(str(requirements_file)))
     assert str(excinfo.value) == \
         'Cannot parse SomeDependency: editable projects unsupported'
-
-
-def test_requirements_file_link(tmpdir):
-    requirements_file = tmpdir.join('requirements.txt')
-    requirements_file.write('''
-file:///path/to/your/lib/project#egg=MyProject
-    '''.strip())
-    with pytest.raises(ValueError) as excinfo:
-        list(parse_requirements(str(requirements_file)))
-    assert str(excinfo.value) == \
-        'Cannot parse MyProject: file-specified projects unsupported'

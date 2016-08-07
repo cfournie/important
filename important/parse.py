@@ -51,16 +51,6 @@ def parse_dir_imports(directory):
                                            col_offset)
 
 
-def _req_has_file_link(req):
-    url = getattr(req, 'url', None)
-    if url and url.lower().startswith('file:'):
-        return True
-    link = getattr(req, 'link', None)
-    if link and getattr(link, 'scheme', '') == 'file':
-        return True
-    return False
-
-
 def parse_requirements(filename):
     requirements = pip.req.parse_requirements(filename,
                                               session=pip.download.PipSession())
@@ -72,14 +62,5 @@ def parse_requirements(filename):
             raise ValueError(
                 'Cannot parse %s: editable projects unsupported' %
                 requirement.name)
-        elif _req_has_file_link(requirement):
-            raise ValueError(
-                'Cannot parse %s: file-specified projects unsupported' %
-                requirement.name)
         else:
             yield requirement
-
-
-def parse_requirement_contraints(filename):
-    for requirement in parse_requirements(filename):
-        pass

@@ -1,4 +1,5 @@
 import pytest
+from pip._vendor.packaging.specifiers import SpecifierSet
 from important.parse import parse_requirements
 from important.check import check_unused_requirements, \
     frequency_count_imports, check_import_frequencies
@@ -44,6 +45,6 @@ def test_check_import_frequencies(tmpdir, python_file_imports):
         re>1,<=3'''.strip())
     requirements = parse_requirements(str(requirements_file))
     assert check_import_frequencies(python_file_imports, requirements) == {
-        'os': 9,
-        'os.path': 6
+        'os': (SpecifierSet('<6'), 9),
+        'os.path': (SpecifierSet('<6'), 6),
     }
