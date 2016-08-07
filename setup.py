@@ -2,9 +2,9 @@
 
 from distutils.core import setup
 
-setup(name='requirements',
+setup(name='important',
       version='0.0',
-      description='Requirements checking utilities',
+      description='Import and requirements checking utilities',
       author='Chris Fournier',
       author_email='chris.m.fournier@gmail.com',
       url='',
