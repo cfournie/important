@@ -14,14 +14,24 @@ def check_unused_requirements(imports, requirements):
 
 def frequency_count_imports(imports):
     module_frequencies = defaultdict(int)
-    base_module_frequencies = defaultdict(int)
     for import_statement in imports:
         module_frequencies[import_statement.module] += 1
-        base_module_frequencies[
-            _base_module_name(import_statement)
-        ] += 1
-    return module_frequencies, base_module_frequencies
+        if '.' in import_statement.module:
+            module_frequencies[
+                _base_module_name(import_statement)
+            ] += 1
+    return module_frequencies
 
 
-def check_import_frequencies(imports, contraints):
-    pass
+def check_import_frequencies(imports, requirements):
+    constraints = dict()
+    for requirement in requirements:
+        if requirement.req.specifier:
+            constraints[requirement.name] = requirement.req.specifier
+    module_frequencies = frequency_count_imports(imports)
+    violations = dict()
+    for module, constraint in constraints.items():
+        if module in module_frequencies \
+            and not constraint.contains(str(module_frequencies[module])):
+            violations[module] = module_frequencies[module]
+    return violations
