@@ -4,40 +4,12 @@ from important.parse import _imports, parse_file_imports, parse_dir_imports, \
 import stat
 
 
-@pytest.fixture
-def python_source():
-    return '''
-#!/usr/bin/env python
-from collections import defaultdict
-from math import abs as absolute
-import os
-import copy as duplicate
-import re, time, sys
-import os.path
-from os.path import exists, join
-
-print("test")
-
-def func():
-    import parser
-
-class A(object):
-    import enum
-
-    def method(self):
-        import csv
-'''.strip()
-
-
 def test_imports(python_source, python_imports):
     assert list(_imports(python_source)) == python_imports
 
 
-def test_file_imports(tmpdir, python_source, python_imports):
-    sourcefile = tmpdir.join('test.py')
-    sourcefile.write(python_source)
-    assert list(parse_file_imports(str(sourcefile.realpath()))) == \
-        python_imports
+def test_file_imports(python_source_file, python_imports):
+    assert list(parse_file_imports(python_source_file)) == python_imports
 
 
 def test_dir_imports(tmpdir, python_source, python_file_imports):

@@ -1,6 +1,5 @@
 import click
 import os
-import sys
 from important.parse import parse_dir_imports, parse_file_imports, \
     parse_requirements
 from important.check import check_unused_requirements, check_import_frequencies
@@ -75,11 +74,11 @@ def check(requirements, constraints, verbose, sourcecode):
 
     # Exit
     if unused_requirements or contraint_violations:
-        sys.exit(1)
+        click.exit(1)
     if not requirements and not constraints:
-        sys.stderr.write('No checks performed; supply either requirements or '
-                         'contraints to check sourcecode against\n')
-        sys.exit(1)
+        raise click.ClickException('No checks performed; supply either '
+                                   'requirements or contraints to check '
+                                   'sourcecode against')
 
 if __name__ == '__main__':
     check()

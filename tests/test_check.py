@@ -5,14 +5,8 @@ from important.check import check_unused_requirements, \
     frequency_count_imports, check_import_frequencies
 
 
-def test_unused_requirements(python_file_imports, tmpdir):
-    requirements_file = tmpdir.join('requirements.txt')
-    requirements_file.write('''
-        unused
-        os
-        csv
-        parser'''.strip())
-    requirements = parse_requirements(str(requirements_file))
+def test_unused_requirements(python_file_imports, requirements_file):
+    requirements = parse_requirements(requirements_file)
     assert check_unused_requirements(python_file_imports, requirements) == \
         set(['unused'])
 
@@ -33,17 +27,8 @@ def test_frequency_count_imports(python_file_imports):
     }
 
 
-def test_check_import_frequencies(tmpdir, python_file_imports):
-    requirements_file = tmpdir.join('requirements.txt')
-    requirements_file.write('''
-        unused==0
-        other_unused==0
-        os<6
-        os.path<6
-        enum<10
-        csv>1
-        re>1,<=3'''.strip())
-    requirements = parse_requirements(str(requirements_file))
+def test_check_import_frequencies(python_file_imports, constraints_file):
+    requirements = parse_requirements(constraints_file)
     assert check_import_frequencies(python_file_imports, requirements) == {
         'os': (SpecifierSet('<6'), 9),
         'os.path': (SpecifierSet('<6'), 6),
