@@ -1,8 +1,10 @@
 import click
+from click import ClickException
 import os
 from important.parse import parse_dir_imports, parse_file_imports, \
     parse_requirements
 from important.check import check_unused_requirements, check_import_frequencies
+import sys
 
 
 @click.command('Check imports within sourcecode for either unused requirements '
@@ -45,12 +47,14 @@ def check(requirements, constraints, verbose, sourcecode):
     parsed_contraints = parse_requirements(constraints)
 
     # Parse source code
-    imports = list()
+    imports = []
     for path in sourcecode:
         if os.path.isfile(path):
             imports.extend(parse_file_imports(path))
         elif os.path.isdir(path):
             imports.extend(parse_dir_imports(path))
+
+    output = []
 
     # Test requirements
     unused_requirements = None
@@ -59,7 +63,7 @@ def check(requirements, constraints, verbose, sourcecode):
                                                         parsed_requirements)
         if verbose > 0:
             for unused_requirement in sorted(unused_requirements):
-                sys.stderr.write('%s (unused requirement)\n' % unused_requirement)
+                output.append('%s (unused requirement)' % unused_requirement)
 
     # Test contraints
     contraint_violations = None
@@ -69,16 +73,21 @@ def check(requirements, constraints, verbose, sourcecode):
         if verbose > 0:
             for module, violation in sorted(contraint_violations.items()):
                 constraint, frequency = violation
-                sys.stderr.write('%s%s (constraint violated by %s==%d)\n' % \
-                    (module, constraint, module, frequency))
+                output.append('%s%s (constraint violated by %s==%d)' % \
+                              (module, constraint, module, frequency))
 
     # Exit
     if unused_requirements or contraint_violations:
-        click.exit(1)
+        if verbose:
+            message = 'Unused requirements or violated contraints found'
+            message += '\n' if output else ''
+            message += '\n'.join(output) if output else ''
+            raise ClickException(message)
+        else:
+            sys.exit(1)
     if not requirements and not constraints:
-        raise click.ClickException('No checks performed; supply either '
-                                   'requirements or contraints to check '
-                                   'sourcecode against')
+        raise ClickException('No checks performed; supply either requirements '
+                             'or contraints')
 
 if __name__ == '__main__':
     check()

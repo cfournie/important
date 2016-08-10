@@ -1,6 +1,6 @@
 import pytest
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
-    parse_requirements, import_statement, RE_SHEBANG
+    parse_requirements, Import, RE_SHEBANG
 import stat
 
 
@@ -9,7 +9,9 @@ def test_imports(python_source, python_imports):
 
 
 def test_file_imports(python_source_file, python_imports):
-    assert list(parse_file_imports(python_source_file)) == python_imports
+    assert list(parse_file_imports(python_source_file)) == \
+           list(map(lambda i: Import(i[0], 'test.py', i[1], i[2]),
+                    python_imports))
 
 
 def test_dir_imports(tmpdir, python_source, python_file_imports):

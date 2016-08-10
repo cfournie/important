@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+
 def _base_module_name(import_statement):
     return import_statement.module.split('.')[0]
 

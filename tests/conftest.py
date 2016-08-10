@@ -1,5 +1,5 @@
 import pytest
-from important.parse import import_statement
+from important.parse import Import
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def python_imports():
 def python_file_imports(python_imports):
     def create_results(filepath):
         return list(map(
-            lambda x: import_statement(x[0], filepath, x[1], x[2]),
+            lambda x: Import(x[0], filepath, x[1], x[2]),
             python_imports
         ))
     items = create_results('test.py')
@@ -63,6 +63,16 @@ def python_source_file(tmpdir, python_source):
     python_source_file = tmpdir.join('test.py')
     python_source_file.write(python_source)
     return str(python_source_file)
+
+
+@pytest.fixture
+def python_source_dir(tmpdir, python_source):
+    python_source_dir = tmpdir.mkdir('dir')
+    python_source_dir.join('test1.py').write(python_source)
+    python_source_dir.join('test2.py').write(python_source)
+    python_source_subdir = tmpdir.mkdir('subdir')
+    python_source_subdir.join('test3.py').write(python_source)
+    return str(python_source_dir)
 
 
 @pytest.fixture

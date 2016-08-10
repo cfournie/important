@@ -6,7 +6,7 @@ from collections import namedtuple
 
 RE_SHEBANG = re.compile('^#![^\n]*python[0-9]?$')
 
-import_statement = namedtuple('import_statement', ['module', 'filename', 'lineno', 'col_offset'])
+Import = namedtuple('Import', ['module', 'filename', 'lineno', 'col_offset'])
 
 
 def _imports(source):
@@ -24,11 +24,15 @@ def _imports(source):
         yield statement
 
 
-def parse_file_imports(filename):
-    with open(filename) as fh:
+def parse_file_imports(filepath, directory=None):
+    if directory is None:
+        directory = os.path.dirname(filepath)
+    display_filepath = os.path.relpath(filepath, directory)
+    with open(filepath) as fh:
         source = fh.read()
     for statement in _imports(ast.parse(source)):
-        yield statement
+        module, lineno, col_offset = statement
+        yield Import(module, display_filepath, lineno, col_offset)
 
 
 def _is_script(filepath):
@@ -40,15 +44,12 @@ def _is_script(filepath):
 
 
 def parse_dir_imports(directory):
-    for root, dir, files in os.walk(directory):
+    for root, _, files in os.walk(directory):
         for filename in files:
             filepath = os.path.join(root, filename)
             if filename.endswith('.py') or _is_script(filepath):
-                display_filepath = os.path.relpath(filepath, directory)
-                for statement in parse_file_imports(filepath):
-                    module, lineno, col_offset = statement
-                    yield import_statement(module, display_filepath, lineno,
-                                           col_offset)
+                for statement in parse_file_imports(filepath, directory):
+                    yield statement
 
 
 def parse_requirements(filename):
