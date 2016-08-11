@@ -31,7 +31,7 @@ def parse_file_imports(filepath, directory=None):
     display_filepath = os.path.relpath(filepath, directory)
     with open(filepath) as fh:
         source = fh.read()
-    for statement in _imports(ast.parse(source)):
+    for statement in _imports(ast.parse(source, filename=filepath)):
         module, lineno, col_offset = statement
         yield Import(module, display_filepath, lineno, col_offset)
 
