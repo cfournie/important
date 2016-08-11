@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+import packaging.utils
 
 def _base_module_name(import_statement):
     return import_statement.module.split('.')[0]
@@ -9,7 +9,8 @@ def check_unused_requirements(imports, requirements):
     # Parse base imports
     imports = set(_base_module_name(import_statement) \
                   for import_statement in imports)
-    requirements = set(requirement.name.lower() for requirement in requirements)
+    requirements = set(packaging.utils.canonicalize_name(requirement.name) \
+                       for requirement in requirements)
     return requirements - imports
 
 
