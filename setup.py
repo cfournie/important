@@ -26,7 +26,7 @@ setup(
     packages=['important'],
     entry_points={
         'console_scripts': [
-            'important=important:main',
+            'important = important.__main__:check',
         ],
     },
     install_requires=['pip', 'click', 'packaging'],
