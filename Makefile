@@ -6,7 +6,7 @@ install:
 
 test:
 	py.test -vv --cov=important tests/
-	important -v --requirements requirements.txt .
+	important -v --requirements requirements.txt --constraints constraints.txt .
 
 lint:
 	flake8 --ignore D .
