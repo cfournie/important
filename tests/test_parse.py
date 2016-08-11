@@ -14,7 +14,8 @@ def test_file_imports(python_source_file, python_imports):
 
 
 def test_dir_imports(tmpdir, python_source_dir, python_file_imports):
-    assert set(parse_dir_imports(python_source_dir)) == set(python_file_imports)
+    assert set(parse_dir_imports(python_source_dir)) == \
+        set(python_file_imports)
 
 
 def test_re_shebang():
