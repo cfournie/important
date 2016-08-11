@@ -9,8 +9,8 @@ def test_imports(python_source, python_imports):
 
 def test_file_imports(python_source_file, python_imports):
     assert list(parse_file_imports(python_source_file)) == \
-           list(map(lambda i: Import(i[0], 'test.py', i[1], i[2]),
-                    python_imports))
+        list(map(lambda i: Import(i[0], 'test.py', i[1], i[2]),
+             python_imports))
 
 
 def test_dir_imports(tmpdir, python_source_dir, python_file_imports):
@@ -41,8 +41,8 @@ pkg3>=1.0,<=2.0
 git+https://myvcs.com/some_dependency@sometag#egg=SomeDependency
     '''.strip())
     assert [requirement.name for requirement in
-            parse_requirements(str(requirements_file))] == [
-            'pkg1', 'pkg2', 'pkg3', 'SomeDependency']
+            parse_requirements(str(requirements_file))] == \
+        ['pkg1', 'pkg2', 'pkg3', 'SomeDependency']
 
 
 def test_requirements_without_name(tmpdir):
@@ -53,7 +53,7 @@ git+https://myvcs.com/some_dependency@sometag
     with pytest.raises(ValueError) as excinfo:
         list(parse_requirements(str(requirements_file)))
     assert str(excinfo.value) == \
-        'A requirement lacks a name (e.g. no `#egg` on a `file:` path)'
+        'A requirement lacks a name (e.g. no `#egg` url)'
 
 
 def test_requirements_editable(tmpdir):

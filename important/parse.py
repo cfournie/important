@@ -1,6 +1,7 @@
 import ast
 import os
 import pip
+from pip.req import parse_requirements as pip_parse_requirements
 import re
 from collections import namedtuple
 
@@ -56,12 +57,12 @@ def parse_dir_imports(current_directory, root_directory=None):
 
 
 def parse_requirements(filename):
-    requirements = pip.req.parse_requirements(filename,
-                                              session=pip.download.PipSession())
+    requirements = pip_parse_requirements(filename,
+                                          session=pip.download.PipSession())
     for requirement in requirements:
         if not requirement.name:
             raise ValueError(
-                'A requirement lacks a name (e.g. no `#egg` on a `file:` path)')
+                'A requirement lacks a name (e.g. no `#egg` url)')
         elif requirement.editable:
             raise ValueError(
                 'Cannot parse %s: editable projects unsupported' %

@@ -69,7 +69,7 @@ def python_source_file(tmpdir, python_source):
 @pytest.fixture
 def python_source_dir(tmpdir, python_source):
     executable_file_mode = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH \
-                            | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+        | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
 
     # Create a set of python files and a script file within
     # the base or other subdirectories that should be parsed

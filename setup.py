@@ -31,6 +31,6 @@ setup(
     },
     install_requires=['pip', 'click', 'packaging'],
     extras_require={
-          'test': ['pytest', 'pytest-cov'],
+        'test': ['pytest', 'pytest-cov'],
     },
 )

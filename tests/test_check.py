@@ -1,4 +1,3 @@
-import pytest
 from pip._vendor.packaging.specifiers import SpecifierSet
 from important.parse import parse_requirements
 from important.check import check_unused_requirements, \

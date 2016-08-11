@@ -7,15 +7,16 @@ from important.check import check_unused_requirements, check_import_frequencies
 import sys
 
 
-@click.command('Check imports within sourcecode for either unused requirements '
-               'or an import frequency that violates some constraints')
+@click.command('Check imports within sourcecode for either unused requirements'
+               ' or an import frequency that violates some constraints')
 @click.option('--requirements',
               multiple=True,
               help="Requirement(s) file(s) to check for unused entries by "
                    "comparing against imports in source code; for formatting, "
                    "see pip's documentation https://pip.pypa.io/",
               type=click.Path(exists=True, file_okay=True, dir_okay=False,
-                              writable=False, readable=True, resolve_path=True))
+                              writable=False, readable=True,
+                              resolve_path=True))
 @click.option('--constraints',
               help="Requirement(s) file(s) to interpret as constraints on the "
                    "frequency of imports in source code.  Version numbers are "
@@ -26,14 +27,15 @@ import sys
                    "sourcecode must contain one or more but 5 or less imports "
                    "of `os`."
                    "This can be used to slowly wean a project off of a module "
-                   "(e.g. while converting a large project from Python 2 to 3) "
-                   "or to prevent a module from being used altogether using "
+                   "(e.g. while converting a large project from Python 2 to 3)"
+                   " or to prevent a module from being used altogether using "
                    "`os.path==0`."
                    "Note that when frequency counting, imports of `os.path` "
                    "and `os` will produce a frequency of `os==2` and `os.path"
                    "==1`",
               type=click.Path(exists=True, file_okay=True, dir_okay=False,
-                              writable=False, readable=True, resolve_path=True))
+                              writable=False, readable=True,
+                              resolve_path=True))
 @click.option('-v', '--verbose', count=True)
 @click.argument('sourcecode', nargs=-1,
                 type=click.Path(exists=True, file_okay=True, dir_okay=True,
@@ -73,7 +75,7 @@ def check(requirements, constraints, verbose, sourcecode):
         if verbose > 0:
             for module, violation in sorted(contraint_violations.items()):
                 constraint, frequency = violation
-                output.append('%s%s (constraint violated by %s==%d)' % \
+                output.append('%s%s (constraint violated by %s==%d)' %
                               (module, constraint, module, frequency))
 
     # Exit
