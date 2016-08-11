@@ -18,8 +18,9 @@ def test_main_verbose(runner, requirements_file, constraints_file,
     assert result.output == '''
 Error: Unused requirements or violated contraints found
 unused (unused requirement)
-os<6 (constraint violated by os==9)
-os.path<6 (constraint violated by os.path==6)\n'''.lstrip()
+os<6 (constraint violated by os==12)
+os.path<6 (constraint violated by os.path==8)
+re<=3,>1 (constraint violated by re==4)\n'''.lstrip()
 
 
 def test_main(runner, requirements_file, constraints_file, python_source_file,

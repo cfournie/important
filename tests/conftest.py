@@ -1,5 +1,6 @@
 import pytest
 from important.parse import Import
+import stat
 
 
 @pytest.fixture
@@ -27,9 +28,9 @@ def python_file_imports(python_imports):
             lambda x: Import(x[0], filepath, x[1], x[2]),
             python_imports
         ))
-    items = create_results('test.py')
-    items.extend(create_results('testdir/test.py'))
-    items.extend(create_results('testdir/testfile'))
+    items = create_results('scriptfile')
+    items.extend(create_results('test1.py'))
+    items.extend(create_results('subdir/test3.py'))
     return items
 
 
@@ -67,11 +68,28 @@ def python_source_file(tmpdir, python_source):
 
 @pytest.fixture
 def python_source_dir(tmpdir, python_source):
+    executable_file_mode = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH \
+                            | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+
+    # Create a set of python files and a script file within
+    # the base or other subdirectories that should be parsed
     python_source_dir = tmpdir.mkdir('dir')
     python_source_dir.join('test1.py').write(python_source)
-    python_source_dir.join('test2.py').write(python_source)
-    python_source_subdir = tmpdir.mkdir('subdir')
+    python_scriptfile = python_source_dir.join('scriptfile')
+    python_scriptfile.write(python_source)
+    python_scriptfile.chmod(executable_file_mode)
+    python_source_subdir = python_source_dir.mkdir('subdir')
     python_source_subdir.join('test3.py').write(python_source)
+
+    # Add file without shebang, but the correct permissions, that shouldn't be
+    # parsed
+    randomfile = python_source_dir.join('randomfile')
+    randomfile.write('\n'.join(python_source.split('\n')[1:]))
+    randomfile.chmod(executable_file_mode)
+
+    # Add file with shebang but wrong permissions that shouldn't be parsed
+    python_source_dir.join('otherrandomfile').write(python_source)
+
     return str(python_source_dir)
 
 

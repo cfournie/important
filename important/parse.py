@@ -43,13 +43,19 @@ def _is_script(filepath):
     return False
 
 
-def parse_dir_imports(directory):
-    for root, _, files in os.walk(directory):
+def parse_dir_imports(current_directory, root_directory=None):
+    if root_directory is None:
+        root_directory = current_directory
+    for root, directories, files in os.walk(current_directory):
         for filename in files:
             filepath = os.path.join(root, filename)
             if filename.endswith('.py') or _is_script(filepath):
-                for statement in parse_file_imports(filepath, directory):
+                for statement in parse_file_imports(filepath,
+                                                    current_directory):
                     yield statement
+        for directory in directories:
+            for statement in parse_dir_imports(os.path.join(root, filename), current_directory):
+                yield statement
 
 
 def parse_requirements(filename):

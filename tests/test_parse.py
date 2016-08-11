@@ -1,7 +1,6 @@
 import pytest
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
     parse_requirements, Import, RE_SHEBANG
-import stat
 
 
 def test_imports(python_source, python_imports):
@@ -14,28 +13,9 @@ def test_file_imports(python_source_file, python_imports):
                     python_imports))
 
 
-def test_dir_imports(tmpdir, python_source, python_file_imports):
-    file_mode = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH \
-                | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-
-    # Create a set of python files and a script file within
-    # the base or other subdirectories that should be parsed
-    tmpdir.join('test.py').write(python_source)
-    dirpath = tmpdir.ensure('testdir', dir=True)
-    dirpath.join('test.py').write(python_source)
-    scriptfile = dirpath.join('testfile')
-    scriptfile.write(python_source)
-    scriptfile.chmod(file_mode)
-
-    # Add file without shebang that shouldn't be parsed
-    randomfile = dirpath.join('randomfile')
-    randomfile.write('\n'.join(python_source.split('\n')[1:]))
-    randomfile.chmod(file_mode)
-
-    # Add file with shebang but wrong mode that shouldn't be parsed
-    dirpath.join('otherrandomfile').write(python_source)
-
-    assert list(parse_dir_imports(str(tmpdir))) == python_file_imports
+def test_dir_imports(tmpdir, python_source_dir, python_file_imports):
+    print(list(parse_dir_imports(python_source_dir)))
+    assert list(parse_dir_imports(python_source_dir)) == python_file_imports
 
 
 def test_re_shebang():
