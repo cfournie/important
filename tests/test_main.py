@@ -16,7 +16,7 @@ def test_main_verbose(runner, requirements_file, constraints_file,
                                    python_source_file, python_source_dir])
     assert result.exit_code == 1
     assert result.output == '''
-Error: Unused requirements or violated contraints found
+Error: Unused requirements or violated constraints found
 unused (unused requirement)
 os<6 (constraint violated by os==12)
 os.path<6 (constraint violated by os.path==8)

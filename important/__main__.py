@@ -81,7 +81,7 @@ def check(requirements, constraints, verbose, sourcecode):
     # Exit
     if unused_requirements or contraint_violations:
         if verbose:
-            message = 'Unused requirements or violated contraints found'
+            message = 'Unused requirements or violated constraints found'
             message += '\n' if output else ''
             message += '\n'.join(output) if output else ''
             raise ClickException(message)
