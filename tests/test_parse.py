@@ -7,15 +7,19 @@ def test_imports(python_source, python_imports):
     assert list(_imports(python_source)) == python_imports
 
 
-def test_file_imports(python_source_file, python_imports):
+def test_file_imports(python_source_file, python_imports, exclusions):
     assert list(parse_file_imports(python_source_file)) == \
         list(map(lambda i: Import(i[0], 'test.py', i[1], i[2]),
              python_imports))
 
 
-def test_dir_imports(tmpdir, python_source_dir, python_file_imports):
-    assert set(parse_dir_imports(python_source_dir)) == \
+def test_dir_imports(python_source_dir, python_file_imports, exclusions):
+    assert set(parse_dir_imports(python_source_dir, exclusions)) == \
         set(python_file_imports)
+
+
+def test_excluded_directory_imports(python_excluded_dir, exclusions):
+    assert set(parse_dir_imports(python_excluded_dir, exclusions)) == set()
 
 
 def test_re_shebang():

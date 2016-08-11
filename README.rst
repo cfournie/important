@@ -41,3 +41,12 @@ requirement while you phase it out) using:
     $ important -v --constraints constraints.txt .
     Error: Unused requirements or violated constraints found
     click<=1 (constraint violated by click==2)
+
+
+Check for unused requirements but exclude test files using:
+
+.. code:: bash
+
+    $ important -v --requirements requirements.txt **/test_*.py .
+    Error: Unused requirements or violated constraints found
+    caniusepython3 (unused requirement)
