@@ -40,4 +40,4 @@ requirement while you phase it out) using:
 
     $ important -v --constraints constraints.txt .
     Error: Unused requirements or violated constraints found
-    click<=1 (constraint violated by click=
+    click<=1 (constraint violated by click==2)
