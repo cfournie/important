@@ -15,27 +15,29 @@ Installation
 
 Coming to pypi soon, but in the meantime, install from source using:
 
-```
-git clone https://github.com/cfournie/important.git
-cd important
-pip install .
-```
+.. code:: bash
+
+    $ git clone https://github.com/cfournie/important.git
+    $ cd important
+    $ pip install .
 
 Usage
 -----
 
 Check for unused requirements using:
-```
-$ important -v --requirements requirements.txt .
-Error: Unused requirements or violated constraints found
-caniusepython3 (unused requirement)
-```
+
+.. code:: bash
+
+    $ important -v --requirements requirements.txt .
+    Error: Unused requirements or violated constraints found
+    caniusepython3 (unused requirement)
+
 
 Check for imports that are used too frequently (to prevent further usage of a
 requirement while you phase it out) using:
 
-```
-$ important -v --constraints constraints.txt .
-Error: Unused requirements or violated constraints found
-click<=1 (constraint violated by click=
-```
+.. code:: bash
+
+    $ important -v --constraints constraints.txt .
+    Error: Unused requirements or violated constraints found
+    click<=1 (constraint violated by click=
