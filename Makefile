@@ -1,7 +1,7 @@
 all: install test lint
 
 install:
-	pip install .[test]
+	pip install -e .[test]
 
 test:
 	py.test -vv --cov=important tests/
