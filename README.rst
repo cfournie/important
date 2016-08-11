@@ -1,8 +1,8 @@
-Important
-=========
-
 .. image:: https://travis-ci.org/cfournie/important.svg?branch=master
     :target: https://travis-ci.org/cfournie/important
+
+Important
+=========
 
 A simple source code import checker that checks your project for whether you:
 
