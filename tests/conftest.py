@@ -67,7 +67,7 @@ def python_source_file(tmpdir, python_source):
 
 
 @pytest.fixture
-def python_source_dir(tmpdir, python_source):
+def __python_source_dir__(tmpdir, python_source):
     executable_file_mode = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH \
         | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
 
@@ -90,7 +90,32 @@ def python_source_dir(tmpdir, python_source):
     # Add file with shebang but wrong permissions that shouldn't be parsed
     python_source_dir.join('otherrandomfile').write(python_source)
 
-    return str(python_source_dir)
+    return python_source_dir
+
+
+@pytest.fixture
+def python_source_dir(__python_source_dir__):
+    return str(__python_source_dir__)
+
+
+@pytest.fixture
+def python_excluded_dir(__python_source_dir__):
+    # Create a directory intended to be excluded
+    python_excluded_dir = __python_source_dir__.mkdir('excluded')
+    python_excluded_dir.join('test4.py').write(python_source)
+    return str(python_excluded_dir)
+
+
+@pytest.fixture
+def python_excluded_file(__python_source_dir__):
+    python_excluded_file = __python_source_dir__.join('excluded.py')
+    python_excluded_file.write(python_source)
+    return str(python_excluded_file)
+
+
+@pytest.fixture
+def exclusions(python_excluded_file, python_excluded_dir):
+    return [python_excluded_file, python_excluded_dir]
 
 
 @pytest.fixture
