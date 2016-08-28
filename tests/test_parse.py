@@ -1,6 +1,7 @@
 import pytest
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
-    parse_requirements, Import, RE_SHEBANG
+    parse_requirements, Import, RE_SHEBANG, \
+    translate_requirement_to_module_names
 
 
 def test_imports(python_source, python_imports):
@@ -69,3 +70,13 @@ def test_requirements_editable(tmpdir):
         list(parse_requirements(str(requirements_file)))
     assert str(excinfo.value) == \
         'Cannot parse SomeDependency: editable projects unsupported'
+
+
+def test_translate_requirement_to_module_names():
+    assert translate_requirement_to_module_names('click') == set(['click'])
+    assert translate_requirement_to_module_names('packaging') == \
+        set(['packaging'])
+    assert translate_requirement_to_module_names('pip') == set(['pip'])
+    assert translate_requirement_to_module_names('dnspython') == set(['dns'])
+    assert translate_requirement_to_module_names('fake') == set(['fake'])
+    assert translate_requirement_to_module_names('os.path') == set(['os.path'])

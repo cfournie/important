@@ -2,6 +2,7 @@ import ast
 from collections import namedtuple
 import os
 import pip
+from pip.commands.show import search_packages_info
 from pip.req import parse_requirements as pip_parse_requirements
 import re
 import stat
@@ -99,3 +100,21 @@ def parse_requirements(filename):
                 requirement.name)
         else:
             yield requirement
+
+
+def translate_requirement_to_module_names(requirement_name):
+    provides = set()
+
+    def is_module_folder(filepath):
+        return filepath and \
+            '/' not in filepath and \
+            '.egg-info' not in filepath and \
+            '.dist-info' not in filepath
+
+    for result in search_packages_info([requirement_name]):
+        if 'files' in result:
+            folders = set(map(lambda filepath: os.path.dirname(filepath),
+                          result['files']))
+            folders = filter(is_module_folder, folders)
+            provides |= set(folders)
+    return provides if provides else set([requirement_name])

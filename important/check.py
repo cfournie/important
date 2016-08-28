@@ -1,5 +1,6 @@
 from collections import defaultdict
-import packaging.utils
+from important.parse import translate_requirement_to_module_names
+from packaging.utils import canonicalize_name
 
 
 def _base_module_name(import_statement):
@@ -10,9 +11,17 @@ def check_unused_requirements(imports, requirements):
     # Parse base imports
     imports = set(_base_module_name(import_statement)
                   for import_statement in imports)
-    requirements = set(packaging.utils.canonicalize_name(requirement.name)
+    requirements = set(canonicalize_name(requirement.name)
                        for requirement in requirements)
-    return requirements - imports
+    module_requirements = {}
+    all_modules = set()
+    for requirement in requirements:
+        modules = translate_requirement_to_module_names(requirement)
+        for module in modules:
+            module_requirements[module] = requirement
+        all_modules |= modules
+    unused_modules = all_modules - imports
+    return set(map(lambda module: module_requirements[module], unused_modules))
 
 
 def frequency_count_imports(imports):
@@ -33,8 +42,12 @@ def check_import_frequencies(imports, requirements):
             constraints[requirement.name] = requirement.req.specifier
     module_frequencies = frequency_count_imports(imports)
     violations = dict()
-    for module, constraint in constraints.items():
-        if module in module_frequencies \
-                and not constraint.contains(str(module_frequencies[module])):
-            violations[module] = (constraint, module_frequencies[module])
+    for requirement, constraint in constraints.items():
+        modules = translate_requirement_to_module_names(requirement)
+        for module in modules:
+            if module in module_frequencies \
+                    and not constraint.contains(
+                        str(module_frequencies[module])):
+                violations[requirement] = (constraint,
+                                           module_frequencies[module])
     return violations

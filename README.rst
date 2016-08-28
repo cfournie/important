@@ -21,6 +21,15 @@ Coming to pypi soon, but in the meantime, install from source using:
     $ cd important
     $ pip install .
 
+Requirements
+------------
+
+This works best when run from a virtualenv where your project's requirements
+are installed (to translate requirements to module names).
+
+This tool requires that it be installed with the same Python version as the
+source code that's analyzing and that the source code is syntactically correct.
+
 Usage
 -----
 
