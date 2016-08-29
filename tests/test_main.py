@@ -53,19 +53,19 @@ def test_dir_ok_verbose2(runner, ok_requirements_file, ok_constraints_file,
     assert result.exit_code == 0
     assert result.output == '''
 Read requirements:
-os
 csv
-parser
 dnspython
+os
+parser
 Read constraints:
-unused ==0
-other-unused ==0
-os <=9
-os.path <=6
-dnspython <=6
-enum <10
-csv >1
-re <=3,>1
+csv>1
+dnspython<=6
+enum<10
+os<=9
+os.path<=6
+other-unused==0
+re<=3,>1
+unused==0
 Parsed 39 imports in 3 files
 '''.lstrip()
 
@@ -82,23 +82,62 @@ def test_dir_ok_verbose3(runner, ok_requirements_file, ok_constraints_file,
     assert result.exit_code == 0
     assert result.output == '''
 Read requirements:
-os
 csv
-parser
 dnspython
+os
+parser
 Read constraints:
-unused ==0
-other-unused ==0
-os <=9
-os.path <=6
-dnspython <=6
-enum <10
-csv >1
-re <=3,>1
+csv>1
+dnspython<=6
+enum<10
+os<=9
+os.path<=6
+other-unused==0
+re<=3,>1
+unused==0
 Parsed 39 imports in 3 files
 scriptfile
 subdir/test3.py
 test1.py
+collections=scriptfile:2
+collections=subdir/test3.py:2
+collections=test1.py:2
+copy=scriptfile:5
+copy=subdir/test3.py:5
+copy=test1.py:5
+csv=scriptfile:20
+csv=subdir/test3.py:20
+csv=test1.py:20
+dns=scriptfile:8
+dns=subdir/test3.py:8
+dns=test1.py:8
+enum=scriptfile:17
+enum=subdir/test3.py:17
+enum=test1.py:17
+math=scriptfile:3
+math=subdir/test3.py:3
+math=test1.py:3
+os=scriptfile:4
+os=subdir/test3.py:4
+os=test1.py:4
+os.path=scriptfile:7
+os.path=scriptfile:9
+os.path=subdir/test3.py:7
+os.path=subdir/test3.py:9
+os.path=test1.py:7
+os.path=test1.py:9
+parser=scriptfile:14
+parser=subdir/test3.py:14
+parser=test1.py:14
+re=scriptfile:6
+re=subdir/test3.py:6
+re=test1.py:6
+sys=scriptfile:6
+sys=subdir/test3.py:6
+sys=test1.py:6
+time=scriptfile:6
+time=subdir/test3.py:6
+time=test1.py:6
 '''.lstrip()
 
 
