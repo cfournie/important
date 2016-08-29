@@ -106,15 +106,26 @@ def translate_requirement_to_module_names(requirement_name):
     provides = set()
 
     def is_module_folder(filepath):
-        return filepath and \
+        return bool(filepath) and \
             '/' not in filepath and \
             '.egg-info' not in filepath and \
-            '.dist-info' not in filepath
+            '.dist-info' not in filepath and \
+            '__pycache__' not in filepath
+
+    def is_top_level_file(filepath):
+        return bool(filepath) and \
+            '/' not in filepath and \
+            filepath.endswith('.py')
 
     for result in search_packages_info([requirement_name]):
         if 'files' in result:
-            folders = set(map(lambda filepath: os.path.dirname(filepath),
-                          result['files']))
+            # Handle modules that are installed as folders in site-packages
+            folders = map(lambda filepath: os.path.dirname(filepath),
+                          result['files'])
             folders = filter(is_module_folder, folders)
             provides |= set(folders)
+            # Handle modules that are installed as .py files in site-packages
+            top_level_files = filter(is_top_level_file, result['files'])
+            provides |= set([os.path.splitext(filename)[0]
+                             for filename in top_level_files])
     return provides if provides else set([requirement_name])
