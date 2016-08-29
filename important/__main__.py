@@ -45,6 +45,11 @@ import sys
                                 resolve_path=True))
 @click.option('-v', '--verbose', count=True)
 def check(requirements, constraints, exclude, sourcecode, verbose):
+    # Validate options
+    if not requirements and not constraints:
+        raise click.BadParameter('no checks performed; supply either '
+                                 '--requirements or --contraints')
+
     # Parse requirements and contraints
     parsed_requirements = []
     for requirements_path in requirements:
@@ -52,6 +57,16 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
     parsed_contraints = []
     for contraints_path in constraints:
         parsed_contraints.extend(parse_requirements(contraints_path))
+
+    if verbose >= 2:
+        click.echo('Read requirements:')
+        for parsed_requirement in parsed_requirements:
+            click.echo(parsed_requirement.name)
+        click.echo('Read constraints:')
+        for parsed_contraint in parsed_contraints:
+            click.echo('{constraint} {specifier}'.format(
+                constraint=parsed_contraint.name,
+                specifier=str(parsed_contraint.specifier)))
 
     # Parse source code
     imports = None
@@ -63,6 +78,7 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
         raise click.BadParameter("could not parse SOURCECODE '%s'; path is "
                                  "either not a file or not a directory" %
                                  sourcecode)
+    filenames = set(map(lambda i: i.filename, imports))
 
     output = []
 
@@ -86,18 +102,25 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
                 output.append('%s%s (constraint violated by %s==%d)' %
                               (module, constraint, module, frequency))
 
+    # Statistics
+    if verbose >= 1:
+        click.echo('Parsed {imports} imports in {files} files'.format(
+            imports=len(imports),
+            files=len(filenames),
+        ))
+    if verbose >= 3:
+        for filename in sorted(filenames):
+            click.echo(filename)
+
     # Exit
     if unused_requirements or contraint_violations:
-        if verbose:
+        if verbose >= 1:
             message = 'Unused requirements or violated constraints found'
             message += '\n' if output else ''
             message += '\n'.join(output) if output else ''
             raise click.ClickException(message)
         else:
             sys.exit(1)
-    if not requirements and not constraints:
-        raise click.BadParameter('no checks performed; supply either '
-                                 '--requirements or --contraints')
 
 if __name__ == '__main__':
     check()

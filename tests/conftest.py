@@ -14,10 +14,11 @@ def python_imports():
         ('time', 6, 0),
         ('sys', 6, 0),
         ('os.path', 7, 0),
-        ('os.path', 8, 0),
-        ('parser', 13, 4),
-        ('enum', 16, 4),
-        ('csv', 19, 8),
+        ('dns', 8, 0),
+        ('os.path', 9, 0),
+        ('parser', 14, 4),
+        ('enum', 17, 4),
+        ('csv', 20, 8),
     ]
 
 
@@ -44,6 +45,7 @@ import os
 import copy as duplicate
 import re, time, sys
 import os.path
+import dns
 from os.path import exists, join
 
 print("test")
@@ -122,10 +124,22 @@ def exclusions(python_excluded_file, python_excluded_dir):
 def requirements_file(tmpdir):
     requirements_file = tmpdir.join('requirements.txt')
     requirements_file.write('''
-unused
+pyyaml
 os
 csv
-parser'''.strip())
+parser
+dnspython'''.strip())
+    return str(requirements_file)
+
+
+@pytest.fixture
+def ok_requirements_file(tmpdir):
+    requirements_file = tmpdir.join('requirements.txt')
+    requirements_file.write('''
+os
+csv
+parser
+dnspython'''.strip())
     return str(requirements_file)
 
 
@@ -137,6 +151,22 @@ unused==0
 other_unused==0
 os<6
 os.path<6
+dnspython==0
+enum<10
+csv>1
+re>1,<=3'''.strip())
+    return str(constraints_file)
+
+
+@pytest.fixture
+def ok_constraints_file(tmpdir):
+    constraints_file = tmpdir.join('constraints.txt')
+    constraints_file.write('''
+unused==0
+other_unused==0
+os<=9
+os.path<=6
+dnspython<=6
 enum<10
 csv>1
 re>1,<=3'''.strip())

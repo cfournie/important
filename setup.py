@@ -35,6 +35,6 @@ setup(
     },
     install_requires=['pip', 'click', 'packaging'],
     extras_require={
-        'test': ['pytest', 'pytest-cov', 'flake8'],
+        'test': ['pytest', 'pytest-cov', 'flake8', 'dnspython'],
     },
 )

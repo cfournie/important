@@ -6,8 +6,8 @@ from important.check import check_unused_requirements, \
 
 def test_unused_requirements(python_file_imports, requirements_file):
     requirements = parse_requirements(requirements_file)
-    assert check_unused_requirements(python_file_imports, requirements) == \
-        set(['unused'])
+    assert set(check_unused_requirements(python_file_imports, requirements)) \
+        == set(['pyyaml'])
 
 
 def test_frequency_count_imports(python_file_imports):
@@ -15,6 +15,7 @@ def test_frequency_count_imports(python_file_imports):
         'collections': 3,
         'copy': 3,
         'csv': 3,
+        'dns': 3,
         'enum': 3,
         'math': 3,
         'os': 9,
@@ -31,4 +32,5 @@ def test_check_import_frequencies(python_file_imports, constraints_file):
     assert check_import_frequencies(python_file_imports, requirements) == {
         'os': (SpecifierSet('<6'), 9),
         'os.path': (SpecifierSet('<6'), 6),
+        'dnspython': (SpecifierSet('==0'), 3),
     }
