@@ -60,11 +60,13 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
 
     if verbose >= 2:
         click.echo('Read requirements:')
-        for parsed_requirement in parsed_requirements:
+        for parsed_requirement in sorted(parsed_requirements,
+                                         key=lambda r: r.name):
             click.echo(parsed_requirement.name)
         click.echo('Read constraints:')
-        for parsed_contraint in parsed_contraints:
-            click.echo('{constraint} {specifier}'.format(
+        for parsed_contraint in sorted(parsed_contraints,
+                                       key=lambda r: r.name):
+            click.echo('{constraint}{specifier}'.format(
                 constraint=parsed_contraint.name,
                 specifier=str(parsed_contraint.specifier)))
 
@@ -111,6 +113,11 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
     if verbose >= 3:
         for filename in sorted(filenames):
             click.echo(filename)
+        for i in sorted(imports):
+            click.echo('{module}={filename}:{lineno}'.format(
+                module=i.module,
+                filename=i.filename,
+                lineno=i.lineno))
 
     # Exit
     if unused_requirements or contraint_violations:
