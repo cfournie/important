@@ -17,9 +17,10 @@ def python_imports():
         ('dns', 8, 0),
         ('os.path', 9, 0),
         ('IPy', 10, 0),
-        ('parser', 15, 4),
-        ('enum', 18, 4),
-        ('csv', 21, 8),
+        ('numpy', 11, 0),
+        ('parser', 16, 4),
+        ('enum', 19, 4),
+        ('csv', 22, 8),
     ]
 
 
@@ -49,6 +50,7 @@ import os.path
 import dns
 from os.path import exists, join
 import IPy
+import numpy as np
 
 print("test")
 
@@ -131,7 +133,8 @@ os
 csv
 parser
 dnspython
-ipy'''.strip())
+IPy
+numpy'''.strip())
     return str(requirements_file)
 
 
@@ -143,7 +146,8 @@ os
 csv
 parser
 dnspython
-ipy'''.strip())
+IPy
+numpy'''.strip())
     return str(requirements_file)
 
 
