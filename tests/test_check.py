@@ -12,6 +12,7 @@ def test_unused_requirements(python_file_imports, requirements_file):
 
 def test_frequency_count_imports(python_file_imports):
     assert frequency_count_imports(python_file_imports) == {
+        'IPy': 3,
         'collections': 3,
         'copy': 3,
         'csv': 3,

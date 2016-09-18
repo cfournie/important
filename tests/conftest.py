@@ -16,9 +16,10 @@ def python_imports():
         ('os.path', 7, 0),
         ('dns', 8, 0),
         ('os.path', 9, 0),
-        ('parser', 14, 4),
-        ('enum', 17, 4),
-        ('csv', 20, 8),
+        ('IPy', 10, 0),
+        ('parser', 15, 4),
+        ('enum', 18, 4),
+        ('csv', 21, 8),
     ]
 
 
@@ -47,6 +48,7 @@ import re, time, sys
 import os.path
 import dns
 from os.path import exists, join
+import IPy
 
 print("test")
 
@@ -128,7 +130,8 @@ pyyaml
 os
 csv
 parser
-dnspython'''.strip())
+dnspython
+ipy'''.strip())
     return str(requirements_file)
 
 
@@ -139,7 +142,8 @@ def ok_requirements_file(tmpdir):
 os
 csv
 parser
-dnspython'''.strip())
+dnspython
+ipy'''.strip())
     return str(requirements_file)
 
 

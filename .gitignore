@@ -1,5 +1,6 @@
-.pyc
+*.pyc
 .cache
 *.egg-info
 htmlcov
 .coverage
+*.swp
