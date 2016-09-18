@@ -1,4 +1,4 @@
-.pyc
+*.pyc
 .cache
 *.egg-info
 htmlcov
