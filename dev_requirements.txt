@@ -2,5 +2,9 @@
 pytest
 pytest-cov
 flake8
-dnspython
-ipy
+
+# Modules tested
+dnspython       # Installed as directory dns
+IPy             # Cased and installed as top-level Python file
+numpy           # Has compiled C code; installed as a wheel
+

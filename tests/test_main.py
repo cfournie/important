@@ -19,7 +19,7 @@ def test_verbose(runner, requirements_file, constraints_file,
                            catch_exceptions=False)
     assert result.exit_code == 1
     assert result.output == '''
-Parsed 42 imports in 3 files
+Parsed 45 imports in 3 files
 Error: Unused requirements or violated constraints found
 pyyaml (unused requirement)
 dnspython==0 (constraint violated by dnspython==3)
@@ -37,7 +37,7 @@ def test_dir_ok(runner, ok_requirements_file, ok_constraints_file,
                            catch_exceptions=False)
     assert result.exit_code == 0
     assert result.output == '''
-Parsed 42 imports in 3 files
+Parsed 45 imports in 3 files
 '''.lstrip()
 
 
@@ -53,9 +53,10 @@ def test_dir_ok_verbose2(runner, ok_requirements_file, ok_constraints_file,
     assert result.exit_code == 0
     assert result.output == '''
 Read requirements:
+IPy
 csv
 dnspython
-ipy
+numpy
 os
 parser
 Read constraints:
@@ -67,7 +68,7 @@ os.path<=6
 other-unused==0
 re<=3,>1
 unused==0
-Parsed 42 imports in 3 files
+Parsed 45 imports in 3 files
 '''.lstrip()
 
 
@@ -83,9 +84,10 @@ def test_dir_ok_verbose3(runner, ok_requirements_file, ok_constraints_file,
     assert result.exit_code == 0
     assert result.output == '''
 Read requirements:
+IPy
 csv
 dnspython
-ipy
+numpy
 os
 parser
 Read constraints:
@@ -97,7 +99,7 @@ os.path<=6
 other-unused==0
 re<=3,>1
 unused==0
-Parsed 42 imports in 3 files
+Parsed 45 imports in 3 files
 scriptfile
 subdir/test3.py
 test1.py
@@ -110,18 +112,21 @@ collections=test1.py:2
 copy=scriptfile:5
 copy=subdir/test3.py:5
 copy=test1.py:5
-csv=scriptfile:21
-csv=subdir/test3.py:21
-csv=test1.py:21
+csv=scriptfile:22
+csv=subdir/test3.py:22
+csv=test1.py:22
 dns=scriptfile:8
 dns=subdir/test3.py:8
 dns=test1.py:8
-enum=scriptfile:18
-enum=subdir/test3.py:18
-enum=test1.py:18
+enum=scriptfile:19
+enum=subdir/test3.py:19
+enum=test1.py:19
 math=scriptfile:3
 math=subdir/test3.py:3
 math=test1.py:3
+numpy=scriptfile:11
+numpy=subdir/test3.py:11
+numpy=test1.py:11
 os=scriptfile:4
 os=subdir/test3.py:4
 os=test1.py:4
@@ -131,9 +136,9 @@ os.path=subdir/test3.py:7
 os.path=subdir/test3.py:9
 os.path=test1.py:7
 os.path=test1.py:9
-parser=scriptfile:15
-parser=subdir/test3.py:15
-parser=test1.py:15
+parser=scriptfile:16
+parser=subdir/test3.py:16
+parser=test1.py:16
 re=scriptfile:6
 re=subdir/test3.py:6
 re=test1.py:6

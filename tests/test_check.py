@@ -19,6 +19,7 @@ def test_frequency_count_imports(python_file_imports):
         'dns': 3,
         'enum': 3,
         'math': 3,
+        'numpy': 3,
         'os': 9,
         'os.path': 6,
         'parser': 3,
