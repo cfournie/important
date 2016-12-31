@@ -1,11 +1,14 @@
 import ast
-from collections import namedtuple
+import logging
 import os
 import pip
-from pip.commands.show import search_packages_info
-from pip.req import parse_requirements as pip_parse_requirements
 import re
 import stat
+
+from collections import namedtuple
+from pip.commands.show import search_packages_info
+from pip.req import parse_requirements as pip_parse_requirements
+
 
 RE_SHEBANG = re.compile('^#![^\n]*python[0-9]?$')
 
@@ -51,9 +54,14 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     # Compaile and parse abstract syntax tree and find import statements
     with open(filepath) as fh:
         source = fh.read()
-    for statement in _imports(ast.parse(source, filename=filepath)):
-        module, lineno, col_offset = statement
-        yield Import(module, display_filepath, lineno, col_offset)
+    try:
+        statements = ast.parse(source, filename=filepath)
+        for statement in _imports(statements):
+            module, lineno, col_offset = statement
+            yield Import(module, display_filepath, lineno, col_offset)
+    except SyntaxError as e:
+        logging.warning('Skipping {filename} due to syntax error: {error}'.format(
+                        filename=e.filename, error=str(e)))
 
 
 def _is_script(filepath):
