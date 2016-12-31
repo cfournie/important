@@ -60,8 +60,8 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
             module, lineno, col_offset = statement
             yield Import(module, display_filepath, lineno, col_offset)
     except SyntaxError as e:
-        logging.warning('Skipping {filename} due to syntax error: {error}'.format(
-                        filename=e.filename, error=str(e)))
+        logging.warning('Skipping {filename} due to syntax error: {error}'
+                        .format(filename=e.filename, error=str(e)))
 
 
 def _is_script(filepath):
