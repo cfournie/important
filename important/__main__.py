@@ -129,5 +129,6 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
         else:
             sys.exit(1)
 
+
 if __name__ == '__main__':
     check()
