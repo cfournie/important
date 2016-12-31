@@ -25,6 +25,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     keywords=['import', 'requirement', 'unused'],
     packages=['important'],
@@ -32,9 +33,5 @@ setup(
         'console_scripts': [
             'important = important.__main__:check',
         ],
-    },
-    install_requires=['pip', 'click', 'packaging'],
-    extras_require={
-        'test': ['pytest', 'pytest-cov', 'flake8', 'dnspython'],
     },
 )
