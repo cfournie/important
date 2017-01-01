@@ -26,7 +26,9 @@ def run_check(requirements=None, constraints=None, verbose=0, files=None):
     return CliRunner().invoke(check, runner_args, catch_exceptions=False)
 
 
-def format_output(*output, package_name=None, import_name=None):
+def format_output(*output, **kwargs):
+    package_name = kwargs.get('package_name')
+    import_name = kwargs.get('import_name')
     def sort_output(output, package_name):
         """ Format and sort output by requirement/constraint package names """
         if package_name and package_name in output or \
