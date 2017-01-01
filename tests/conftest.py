@@ -15,11 +15,12 @@ IMPORT_STATEMENT_TO_IMPORT = {
 }
 
 IMPORT_TO_PACKAGE = {
-    'dns': 'dnspython',   # package installed with differing name ('dns' folder)
+    # package installed with differing name ('dns' folder)
+    'dns': 'dnspython',
     'IPy': 'IPy',  # case sensitive package name installed as file ('IPy.py')
     'numpy': 'numpy',  # package with C extensions
     'yaml': 'pyyaml',  # package installed with differing name
-    'bs4': 'beautifulsoup4',  #  package installed with differing name
+    'bs4': 'beautifulsoup4',  # package installed with differing name
 }
 
 

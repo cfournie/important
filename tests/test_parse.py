@@ -11,7 +11,7 @@ def test_imports(python_source, python_imports):
 def test_file_imports(python_source_file, python_imports, exclusions):
     assert list(parse_file_imports(python_source_file)) == \
         list(map(lambda i: Import(i[0], 'test.py', i[1], i[2]),
-             python_imports))
+                 python_imports))
 
 
 def test_dir_imports(python_source_dir, python_file_imports, exclusions):

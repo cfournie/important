@@ -4,9 +4,12 @@ from important.check import check_unused_requirements, \
     frequency_count_imports, check_import_frequencies
 
 
-def test_unused_requirements(python_file_imports, requirements_file_one_unused):
+def test_unused_requirements(
+        python_file_imports,
+        requirements_file_one_unused):
     requirements = parse_requirements(requirements_file_one_unused)
-    unused_requirements = check_unused_requirements(python_file_imports, requirements)
+    unused_requirements = check_unused_requirements(
+        python_file_imports, requirements)
     assert set(unused_requirements) == {'unused'}
 
 
@@ -27,7 +30,10 @@ def test_frequency_count_imports(python_file_imports, import_name):
     }
 
 
-def test_check_import_frequencies(python_file_imports, constraints_file_package_disallowed, package_name):
+def test_check_import_frequencies(
+        python_file_imports,
+        constraints_file_package_disallowed,
+        package_name):
     requirements = parse_requirements(constraints_file_package_disallowed)
     assert check_import_frequencies(python_file_imports, requirements) == {
         'os': (SpecifierSet('<6'), 9),
