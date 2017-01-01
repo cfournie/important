@@ -1,56 +1,61 @@
 import pytest
-from important.parse import Import
 import stat
 
-
-@pytest.fixture
-def python_imports():
-    return [
-        ('collections', 2, 0),
-        ('math', 3, 0),
-        ('os', 4, 0),
-        ('copy', 5, 0),
-        ('re', 6, 0),
-        ('time', 6, 0),
-        ('sys', 6, 0),
-        ('os.path', 7, 0),
-        ('dns', 8, 0),
-        ('os.path', 9, 0),
-        ('IPy', 10, 0),
-        ('numpy', 11, 0),
-        ('parser', 16, 4),
-        ('enum', 19, 4),
-        ('csv', 22, 8),
-    ]
+from important.parse import Import
 
 
-@pytest.fixture
-def python_file_imports(python_imports):
-    def create_results(filepath):
-        return list(map(
-            lambda x: Import(x[0], filepath, x[1], x[2]),
-            python_imports
-        ))
-    items = create_results('scriptfile')
-    items.extend(create_results('test1.py'))
-    items.extend(create_results('subdir/test3.py'))
-    return items
+IMPORT_STATEMENT_TO_IMPORT = {
+    'import dns': 'dns',
+    'import IPy': 'IPy',
+    'from IPy import IP': 'IPy',
+    'import numpy': 'numpy',
+    'import numpy as np': 'numpy',
+    'import yaml': 'yaml',
+    'from bs4 import BeautifulSoup': 'bs4',
+}
+
+IMPORT_TO_PACKAGE = {
+    'dns': 'dnspython',   # package installed with differing name ('dns' folder)
+    'IPy': 'IPy',  # case sensitive package name installed as file ('IPy.py')
+    'numpy': 'numpy',  # package with C extensions
+    'yaml': 'pyyaml',  # package installed with differing name
+    'bs4': 'beautifulsoup4',  #  package installed with differing name
+}
+
+
+@pytest.fixture(params=IMPORT_STATEMENT_TO_IMPORT.items())
+def import_statement_and_import(request):
+    return request.param
 
 
 @pytest.fixture
-def python_source():
+def import_statement(import_statement_and_import):
+    return import_statement_and_import[0]
+
+
+@pytest.fixture
+def import_name(import_statement_and_import):
+    return import_statement_and_import[1]
+
+
+@pytest.fixture
+def package_name(import_name):
+    return IMPORT_TO_PACKAGE[import_name]
+
+
+@pytest.fixture
+def python_source(import_statement):
     return '''
 #!/usr/bin/env python
 from collections import defaultdict
 from math import abs as absolute
 import os
+import copy
 import copy as duplicate
+{import_statement}
 import re, time, sys
 import os.path
-import dns
 from os.path import exists, join
-import IPy
-import numpy as np
 
 print("test")
 
@@ -62,7 +67,40 @@ class A(object):
 
     def method(self):
         import csv
-'''.strip()
+'''.strip().format(import_statement=import_statement)
+
+
+@pytest.fixture
+def python_imports(import_name):
+    return [
+        ('collections', 2, 0),
+        ('math', 3, 0),
+        ('os', 4, 0),
+        ('copy', 5, 0),
+        ('copy', 6, 0),
+        (import_name, 7, 0),
+        ('re', 8, 0),
+        ('time', 8, 0),
+        ('sys', 8, 0),
+        ('os.path', 9, 0),
+        ('os.path', 10, 0),
+        ('parser', 15, 4),
+        ('enum', 18, 4),
+        ('csv', 21, 8),
+    ]
+
+
+@pytest.fixture
+def python_file_imports(python_imports, import_name):
+    def create_results(filepath):
+        return list(map(
+            lambda x: Import(x[0], filepath, x[1], x[2]),
+            python_imports
+        ))
+    items = create_results('scriptfile')
+    items.extend(create_results('test1.py'))
+    items.extend(create_results('subdir/test3.py'))
+    return items
 
 
 @pytest.fixture
@@ -125,57 +163,54 @@ def exclusions(python_excluded_file, python_excluded_dir):
 
 
 @pytest.fixture
-def requirements_file(tmpdir):
-    requirements_file = tmpdir.join('requirements.txt')
-    requirements_file.write('''
-pyyaml
-os
-csv
-parser
-dnspython
-IPy
-numpy'''.strip())
-    return str(requirements_file)
-
-
-@pytest.fixture
-def ok_requirements_file(tmpdir):
+def requirements_file(tmpdir, package_name):
     requirements_file = tmpdir.join('requirements.txt')
     requirements_file.write('''
 os
 csv
 parser
-dnspython
-IPy
-numpy'''.strip())
+{package_name}'''.strip().format(
+        package_name=package_name
+    ))
     return str(requirements_file)
 
 
 @pytest.fixture
-def constraints_file(tmpdir):
+def requirements_file_one_unused(requirements_file):
+    with open(requirements_file, 'a') as fh:
+        fh.write('\nunused')
+    return requirements_file
+
+
+@pytest.fixture
+def constraints_file_package_disallowed(tmpdir, package_name):
     constraints_file = tmpdir.join('constraints.txt')
     constraints_file.write('''
 unused==0
 other_unused==0
 os<6
 os.path<6
-dnspython==0
+{package_name}==0
 enum<10
 csv>1
-re>1,<=3'''.strip())
+    re>1,<=3'''.strip().format(
+        package_name=package_name
+    ))
     return str(constraints_file)
 
 
 @pytest.fixture
-def ok_constraints_file(tmpdir):
+def constraints_file(tmpdir, package_name):
     constraints_file = tmpdir.join('constraints.txt')
     constraints_file.write('''
 unused==0
 other_unused==0
 os<=9
 os.path<=6
-dnspython<=6
+{package_name}<=6
 enum<10
 csv>1
-re>1,<=3'''.strip())
+    re>1,<=3'''.strip().format(
+        package_name=package_name
+    ))
     return str(constraints_file)
