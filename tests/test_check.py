@@ -1,7 +1,7 @@
-from pip._vendor.packaging.specifiers import SpecifierSet
 from important.parse import parse_requirements
 from important.check import check_unused_requirements, \
     frequency_count_imports, check_import_frequencies
+from pip._vendor.packaging.specifiers import SpecifierSet
 
 
 def test_unused_requirements(python_file_imports,
