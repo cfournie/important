@@ -106,7 +106,7 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
         if verbose > 0:
             for module, violation in sorted(
                     contraint_violations.items(),
-                    key=lambda l: l[0]
+                    key=lambda module_violation: module_violation[0]
             ):
                 constraint, frequency = violation
                 output.append('%s%s (constraint violated by %s==%d)' %
