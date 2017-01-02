@@ -8,6 +8,7 @@ import stat
 import sys
 
 from collections import namedtuple
+from io import open
 from pip.commands.show import search_packages_info
 from pip.req import parse_requirements as pip_parse_requirements
 
@@ -58,10 +59,10 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     if directory is None:
         directory = os.path.dirname(filepath)
     display_filepath = os.path.relpath(filepath, directory)
-    # Compaile and parse abstract syntax tree and find import statements
-    with open(filepath) as fh:
-        source = fh.read()
+    # Compile and parse abstract syntax tree and find import statements
     try:
+        with open(filepath) as fh:
+            source = fh.read()
         statements = ast.parse(source, filename=filepath)
         for statement in _imports(statements):
             module, lineno, col_offset = statement
@@ -69,6 +70,9 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     except SyntaxError as e:
         logger.warning('Skipping {filename} due to syntax error: {error}'
                        .format(filename=e.filename, error=str(e)))
+    except UnicodeDecodeError as e:
+        logger.warning('Skipping {filename} due to decoding error: {error}'
+                       .format(filename=filepath, error=str(e)))
 
 
 def _is_script(filepath):
@@ -78,8 +82,9 @@ def _is_script(filepath):
             with open(filepath, mode='r') as fh:
                 first_line = fh.readline()
             return bool(RE_SHEBANG.match(first_line))
-        except UnicodeDecodeError:
-            pass  # Assume that this isn't a script
+        except UnicodeDecodeError as e:
+            logger.warning('Skipping {filename} due to decoding error: {error}'
+                           .format(filename=filepath, error=str(e)))
     return False
 
 

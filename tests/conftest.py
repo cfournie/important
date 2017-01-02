@@ -112,6 +112,14 @@ def python_source_file(tmpdir, python_source):
 
 
 @pytest.fixture
+def binary_file(tmpdir):
+    binary_file = tmpdir.join('bad')
+    with open(str(binary_file), 'wb') as fh:
+        fh.write(bytearray.fromhex('FFFF FFFF'))
+    return str(binary_file)
+
+
+@pytest.fixture
 def __python_source_dir__(tmpdir, python_source):
     executable_file_mode = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH \
         | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
