@@ -1,9 +1,14 @@
 import click
+import logging
 import os
+import sys
+
 from important.parse import parse_dir_imports, parse_file_imports, \
     parse_requirements
 from important.check import check_unused_requirements, check_import_frequencies
-import sys
+
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 
 @click.command(help="Check imports within SOURCECODE (except those files "
@@ -99,7 +104,10 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
         contraint_violations = check_import_frequencies(imports,
                                                         parsed_contraints)
         if verbose > 0:
-            for module, violation in sorted(contraint_violations.items()):
+            for module, violation in sorted(
+                    contraint_violations.items(),
+                    key=lambda module_violation: module_violation[0]
+            ):
                 constraint, frequency = violation
                 output.append('%s%s (constraint violated by %s==%d)' %
                               (module, constraint, module, frequency))
@@ -128,6 +136,7 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
             raise click.ClickException(message)
         else:
             sys.exit(1)
+
 
 if __name__ == '__main__':
     check()

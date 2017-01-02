@@ -11,15 +11,18 @@ def check_unused_requirements(imports, requirements):
     imports = set(_base_module_name(import_statement)
                   for import_statement in imports)
     requirements = set(requirement.name for requirement in requirements)
+    # Translate package names into module names that can be imported
     module_requirements = {}
-    all_modules = set()
     for requirement in requirements:
         modules = translate_requirement_to_module_names(requirement)
         for module in modules:
             module_requirements[module] = requirement
-        all_modules |= modules
-    unused_modules = all_modules - imports
-    return set(map(lambda module: module_requirements[module], unused_modules))
+    # Translate imported modules into package names
+    imports_as_requirements = set(
+        (module_requirements.get(module, module) for module in imports)
+    )
+    # Find those required packages that were not imported
+    return requirements - imports_as_requirements
 
 
 def frequency_count_imports(imports):

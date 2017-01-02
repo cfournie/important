@@ -1,17 +1,78 @@
+import os
 import pytest
+import stat
+import sys
+
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
-    parse_requirements, Import, RE_SHEBANG, \
+    parse_requirements, Import, RE_SHEBANG, _is_script, \
     translate_requirement_to_module_names
+
+try:
+    from unittest.mock import Mock
+except:
+    from mock import Mock
+
+ENCODING = 'utf-8' if sys.version_info > (3, 0) else 'utf8'
 
 
 def test_imports(python_source, python_imports):
     assert list(_imports(python_source)) == python_imports
 
 
-def test_file_imports(python_source_file, python_imports, exclusions):
+def test_file_imports(python_source_file, python_imports):
     assert list(parse_file_imports(python_source_file)) == \
         list(map(lambda i: Import(i[0], 'test.py', i[1], i[2]),
-             python_imports))
+                 python_imports))
+
+
+def test_file_imports_with_syntax_error(mocker, python_source_file):
+    logger = Mock()
+    mocker.patch('important.parse.logger', logger)
+
+    # Alter file so that it won't compile
+    with open(python_source_file, 'a') as fh:
+        fh.write('not a valid Python statement')
+
+    # Attempt to parse and assert that it logged a warning
+    list(parse_file_imports(python_source_file))
+    logger.warning.assert_called_with(
+        'Skipping {filename} due to syntax error: {error}'.format(
+            filename=python_source_file,
+            error='invalid syntax (test.py, line 21)'
+        )
+    )
+
+
+def test_file_imports_binary_file(mocker, binary_file):
+    logger = Mock()
+    mocker.patch('important.parse.logger', logger)
+
+    # Attempt to parse and assert that it logged a warning
+    list(parse_file_imports(binary_file))
+    logger.warning.assert_called_with(
+        'Skipping {filename} due to decoding error: {error}'.format(
+            filename=binary_file,
+            error="'{encoding}' codec can't decode byte 0xff in position 0:\
+ invalid start byte".format(encoding=ENCODING)
+        )
+    )
+
+
+def test_is_script_binary_file(mocker, binary_file):
+    logger = Mock()
+    mocker.patch('important.parse.logger', logger)
+
+    # Make the file executable to appear to be a script
+    os.chmod(binary_file, stat.S_IXUSR | stat.S_IRUSR)
+    # Attempt to parse and assert that it logged a warning
+    _is_script(binary_file)
+    logger.warning.assert_called_with(
+        'Skipping {filename} due to decoding error: {error}'.format(
+            filename=binary_file,
+            error="'{encoding}' codec can't decode byte 0xff in position 0:\
+ invalid start byte".format(encoding=ENCODING)
+        )
+    )
 
 
 def test_dir_imports(python_source_dir, python_file_imports, exclusions):
@@ -72,11 +133,32 @@ def test_requirements_editable(tmpdir):
         'Cannot parse SomeDependency: editable projects unsupported'
 
 
-def test_translate_requirement_to_module_names():
+def test_translate_requirement_to_module_names(mocker):
+    logger = Mock()
+    mocker.patch('important.parse.logger', logger)
+
     assert translate_requirement_to_module_names('click') == set(['click'])
+    logger.warning.assert_not_called()
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('packaging') == \
         set(['packaging'])
+    logger.warning.assert_called_with("Cannot find install location of \
+'packaging'; please install this package for more accurate name resolution")
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('pip') == set(['pip'])
+    logger.warning.assert_not_called()
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('dnspython') == set(['dns'])
+    logger.warning.assert_not_called()
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('fake') == set(['fake'])
+    logger.warning.assert_called_with("Cannot find install location of \
+'fake'; please install this package for more accurate name resolution")
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('os.path') == set(['os.path'])
+    logger.warning.assert_not_called()

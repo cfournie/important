@@ -1,15 +1,26 @@
 import ast
-from collections import namedtuple
+import logging
 import os
 import pip
-from pip.commands.show import search_packages_info
-from pip.req import parse_requirements as pip_parse_requirements
+import pkgutil
 import re
 import stat
+import sys
+
+from collections import namedtuple
+from io import open
+from pip.commands.show import search_packages_info
+from pip.req import parse_requirements as pip_parse_requirements
+
 
 RE_SHEBANG = re.compile('^#![^\n]*python[0-9]?$')
+ALL_MODULES = set(
+    m[1] for m in pkgutil.iter_modules()) | set(
+        sys.builtin_module_names)
 
 Import = namedtuple('Import', ['module', 'filename', 'lineno', 'col_offset'])
+
+logger = logging.getLogger()
 
 
 def _imports(source):
@@ -48,12 +59,20 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     if directory is None:
         directory = os.path.dirname(filepath)
     display_filepath = os.path.relpath(filepath, directory)
-    # Compaile and parse abstract syntax tree and find import statements
-    with open(filepath) as fh:
-        source = fh.read()
-    for statement in _imports(ast.parse(source, filename=filepath)):
-        module, lineno, col_offset = statement
-        yield Import(module, display_filepath, lineno, col_offset)
+    # Compile and parse abstract syntax tree and find import statements
+    try:
+        with open(filepath) as fh:
+            source = fh.read()
+        statements = ast.parse(source, filename=filepath)
+        for statement in _imports(statements):
+            module, lineno, col_offset = statement
+            yield Import(module, display_filepath, lineno, col_offset)
+    except SyntaxError as e:
+        logger.warning('Skipping {filename} due to syntax error: {error}'
+                       .format(filename=e.filename, error=str(e)))
+    except UnicodeDecodeError as e:
+        logger.warning('Skipping {filename} due to decoding error: {error}'
+                       .format(filename=filepath, error=str(e)))
 
 
 def _is_script(filepath):
@@ -63,8 +82,9 @@ def _is_script(filepath):
             with open(filepath, mode='r') as fh:
                 first_line = fh.readline()
             return bool(RE_SHEBANG.match(first_line))
-        except UnicodeDecodeError:
-            pass  # Assume that this isn't a script
+        except UnicodeDecodeError as e:
+            logger.warning('Skipping {filename} due to decoding error: {error}'
+                           .format(filename=filepath, error=str(e)))
     return False
 
 
@@ -128,4 +148,13 @@ def translate_requirement_to_module_names(requirement_name):
             top_level_files = filter(is_top_level_file, result['files'])
             provides |= set([os.path.splitext(filename)[0]
                              for filename in top_level_files])
-    return provides if provides else set([requirement_name])
+
+    if provides:
+        return provides
+    else:
+        module_name = requirement_name.split('.')[0]
+        if module_name not in ALL_MODULES:
+            logger.warning("Cannot find install location of '{requirement}'; please \
+install this package for more accurate name resolution"
+                           .format(requirement=requirement_name))
+        return provides if provides else set([requirement_name])

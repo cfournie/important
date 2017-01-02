@@ -1,181 +1,303 @@
+import os
+import re
+import socket
+import tempfile
+
 from click.testing import CliRunner
 from important.__main__ import check
-import pytest
-import socket
 
 
-@pytest.fixture
-def runner():
-    return CliRunner()
+def run_check(requirements=None, constraints=None, verbose=0, files=None):
+    runner_args = []
+    if requirements:
+        runner_args.extend([
+            '--requirements', requirements
+        ])
+    if constraints:
+        runner_args.extend([
+            '--constraints', constraints
+        ])
+    if verbose:
+        runner_args.extend([
+            '-' + verbose * 'v'
+        ])
+    if files:
+        runner_args.extend(files)
+    return CliRunner().invoke(check, runner_args, catch_exceptions=False)
 
 
-def test_verbose(runner, requirements_file, constraints_file,
-                 python_source_dir, python_excluded_file, python_excluded_dir):
-    result = runner.invoke(check, ['--requirements', requirements_file,
-                                   '--constraints', constraints_file,
-                                   '--verbose', python_excluded_file,
-                                   python_excluded_dir,
-                                   python_source_dir],
-                           catch_exceptions=False)
-    assert result.exit_code == 1
+def format_output(*output, **kwargs):
+    package_name = kwargs.get('package_name')
+    import_name = kwargs.get('import_name')
+
+    def sort_output(output, package_name):
+        """ Format and sort output by requirement/constraint package names """
+        if package_name and package_name in output or \
+           import_name and import_name in output:
+            return '\n'.join(
+                sorted(
+                    output.strip().split('\n'),
+                    key=lambda l: re.split('[\<\>\= ]+', l, maxsplit=1)[0]
+                )
+            )
+        else:
+            return output
+
+    return '\n'.join(
+        (sort_output(
+            output=part.strip().format(
+                package_name=package_name,
+                import_name=import_name),
+            package_name=package_name) for part in output)) + '\n'
+
+
+def test_main_verbosity_level_0(requirements_file, constraints_file,
+                                python_source_dir, python_excluded_file,
+                                python_excluded_dir):
+    result = run_check(
+        requirements=requirements_file,
+        constraints=constraints_file,
+        verbose=0,
+        files=[
+            python_excluded_file,
+            python_excluded_dir,
+            python_source_dir
+        ]
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == ''
+
+
+def test_main_verbosity_level_1(requirements_file, constraints_file,
+                                python_source_dir, python_excluded_file,
+                                python_excluded_dir):
+    result = run_check(
+        requirements=requirements_file,
+        constraints=constraints_file,
+        verbose=1,
+        files=[
+            python_excluded_file,
+            python_excluded_dir,
+            python_source_dir
+        ]
+    )
+    assert result.exit_code == 0, result.output
     assert result.output == '''
-Parsed 45 imports in 3 files
-Error: Unused requirements or violated constraints found
-pyyaml (unused requirement)
-dnspython==0 (constraint violated by dnspython==3)
-os<6 (constraint violated by os==9)
-os.path<6 (constraint violated by os.path==6)\n'''.lstrip()
-
-
-def test_dir_ok(runner, ok_requirements_file, ok_constraints_file,
-                python_source_dir, python_excluded_file, python_excluded_dir):
-    result = runner.invoke(check, ['--requirements', ok_requirements_file,
-                                   '--constraints', ok_constraints_file,
-                                   '--verbose', python_excluded_file,
-                                   python_excluded_dir,
-                                   python_source_dir],
-                           catch_exceptions=False)
-    assert result.exit_code == 0
-    assert result.output == '''
-Parsed 45 imports in 3 files
+Parsed 42 imports in 3 files
 '''.lstrip()
 
 
-def test_dir_ok_verbose2(runner, ok_requirements_file, ok_constraints_file,
-                         python_source_dir, python_excluded_file,
-                         python_excluded_dir):
-    result = runner.invoke(check, ['--requirements', ok_requirements_file,
-                                   '--constraints', ok_constraints_file,
-                                   '-vv', python_excluded_file,
-                                   python_excluded_dir,
-                                   python_source_dir],
-                           catch_exceptions=False)
-    assert result.exit_code == 0
-    assert result.output == '''
-Read requirements:
-IPy
+def test_main_verbosity_level_2(requirements_file, constraints_file,
+                                python_source_dir, python_excluded_file,
+                                python_excluded_dir, package_name):
+    result = run_check(
+        requirements=requirements_file,
+        constraints=constraints_file,
+        verbose=2,
+        files=[
+            python_excluded_file,
+            python_excluded_dir,
+            python_source_dir
+        ]
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == format_output('''
+Read requirements:''', '''
 csv
-dnspython
-numpy
 os
 parser
-Read constraints:
+{package_name}''', '''
+Read constraints:''', '''
 csv>1
-dnspython<=6
+{package_name}<=6
 enum<10
 os<=9
 os.path<=6
 other-unused==0
 re<=3,>1
-unused==0
-Parsed 45 imports in 3 files
-'''.lstrip()
+unused==0''', '''
+Parsed 42 imports in 3 files
+''', package_name=package_name)
 
 
-def test_dir_ok_verbose3(runner, ok_requirements_file, ok_constraints_file,
-                         python_source_dir, python_excluded_file,
-                         python_excluded_dir):
-    result = runner.invoke(check, ['--requirements', ok_requirements_file,
-                                   '--constraints', ok_constraints_file,
-                                   '-vvv', python_excluded_file,
-                                   python_excluded_dir,
-                                   python_source_dir],
-                           catch_exceptions=False)
-    assert result.exit_code == 0
-    assert result.output == '''
-Read requirements:
-IPy
+def test_main_verbosity_level_3(requirements_file, constraints_file,
+                                python_source_dir, python_excluded_file,
+                                python_excluded_dir, package_name,
+                                import_name):
+    result = run_check(
+        requirements=requirements_file,
+        constraints=constraints_file,
+        verbose=3,
+        files=[
+            python_excluded_file,
+            python_excluded_dir,
+            python_source_dir
+        ]
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == format_output('''
+Read requirements:''', '''
 csv
-dnspython
-numpy
 os
 parser
-Read constraints:
+{package_name}''', '''
+Read constraints:''', '''
 csv>1
-dnspython<=6
+{package_name}<=6
 enum<10
 os<=9
 os.path<=6
 other-unused==0
 re<=3,>1
-unused==0
-Parsed 45 imports in 3 files
+unused==0''', '''
+Parsed 42 imports in 3 files
 scriptfile
 subdir/test3.py
-test1.py
-IPy=scriptfile:10
-IPy=subdir/test3.py:10
-IPy=test1.py:10
+test1.py''', '''
+{import_name}=scriptfile:7
+{import_name}=subdir/test3.py:7
+{import_name}=test1.py:7
 collections=scriptfile:2
 collections=subdir/test3.py:2
 collections=test1.py:2
 copy=scriptfile:5
+copy=scriptfile:6
 copy=subdir/test3.py:5
+copy=subdir/test3.py:6
 copy=test1.py:5
-csv=scriptfile:22
-csv=subdir/test3.py:22
-csv=test1.py:22
-dns=scriptfile:8
-dns=subdir/test3.py:8
-dns=test1.py:8
-enum=scriptfile:19
-enum=subdir/test3.py:19
-enum=test1.py:19
+copy=test1.py:6
+csv=scriptfile:21
+csv=subdir/test3.py:21
+csv=test1.py:21
+enum=scriptfile:18
+enum=subdir/test3.py:18
+enum=test1.py:18
 math=scriptfile:3
 math=subdir/test3.py:3
 math=test1.py:3
-numpy=scriptfile:11
-numpy=subdir/test3.py:11
-numpy=test1.py:11
 os=scriptfile:4
 os=subdir/test3.py:4
 os=test1.py:4
-os.path=scriptfile:7
 os.path=scriptfile:9
-os.path=subdir/test3.py:7
+os.path=scriptfile:10
 os.path=subdir/test3.py:9
-os.path=test1.py:7
+os.path=subdir/test3.py:10
 os.path=test1.py:9
-parser=scriptfile:16
-parser=subdir/test3.py:16
-parser=test1.py:16
-re=scriptfile:6
-re=subdir/test3.py:6
-re=test1.py:6
-sys=scriptfile:6
-sys=subdir/test3.py:6
-sys=test1.py:6
-time=scriptfile:6
-time=subdir/test3.py:6
-time=test1.py:6
-'''.lstrip()
+os.path=test1.py:10
+parser=scriptfile:15
+parser=subdir/test3.py:15
+parser=test1.py:15
+re=scriptfile:8
+re=subdir/test3.py:8
+re=test1.py:8
+sys=scriptfile:8
+sys=subdir/test3.py:8
+sys=test1.py:8
+time=scriptfile:8
+time=subdir/test3.py:8
+time=test1.py:8
+''', package_name=package_name, import_name=import_name)
 
 
-def test_dir(runner, requirements_file, constraints_file, python_source_dir,
-             python_excluded_file, python_excluded_dir):
-    result = runner.invoke(check, ['--requirements', requirements_file,
-                                   '--constraints', constraints_file,
-                                   python_excluded_file,
-                                   python_excluded_dir,
-                                   python_source_dir],
-                           catch_exceptions=False)
+def test_main_error_verbosity_level_0(
+        requirements_file_one_unused,
+        constraints_file_package_disallowed,
+        python_source_dir,
+        python_excluded_file,
+        python_excluded_dir,
+        package_name):
+    result = run_check(
+        requirements=requirements_file_one_unused,
+        constraints=constraints_file_package_disallowed,
+        verbose=0,
+        files=[
+            python_excluded_file,
+            python_excluded_dir,
+            python_source_dir
+        ]
+    )
     assert result.exit_code == 1
     assert result.output == ''
 
 
-def test_main_file(runner, requirements_file, constraints_file,
-                   python_source_file):
-    result = runner.invoke(check, ['--requirements', requirements_file,
-                                   '--constraints', constraints_file,
-                                   python_source_file],
-                           catch_exceptions=False)
+def test_main_error_verbosity_level_1(requirements_file_one_unused,
+                                      constraints_file_package_disallowed,
+                                      python_source_dir, python_excluded_file,
+                                      python_excluded_dir, package_name):
+    result = run_check(
+        requirements=requirements_file_one_unused,
+        constraints=constraints_file_package_disallowed,
+        verbose=1,
+        files=[
+            python_excluded_file,
+            python_excluded_dir,
+            python_source_dir
+        ]
+    )
     assert result.exit_code == 1
-    assert result.output == ''
+    assert result.output == format_output(
+        '''
+Parsed 42 imports in 3 files
+Error: Unused requirements or violated constraints found
+unused (unused requirement)''', '''
+{package_name}==0 (constraint violated by {package_name}==3)
+os<6 (constraint violated by os==9)
+os.path<6 (constraint violated by os.path==6)''',
+        package_name=package_name)
 
 
-def test_insufficient_args(runner, python_source_file):
-    result = runner.invoke(check, [python_source_file],
-                           catch_exceptions=False)
+def test_main_error_just_dir(requirements_file_one_unused,
+                             constraints_file_package_disallowed,
+                             python_source_dir, package_name):
+    result = run_check(
+        requirements=requirements_file_one_unused,
+        constraints=constraints_file_package_disallowed,
+        verbose=1,
+        files=[
+            python_source_dir
+        ]
+    )
+    assert result.exit_code == 1
+    assert result.output == format_output(
+        '''
+Parsed 42 imports in 3 files
+Error: Unused requirements or violated constraints found
+unused (unused requirement)''', '''
+{package_name}==0 (constraint violated by {package_name}==3)
+os<6 (constraint violated by os==9)
+os.path<6 (constraint violated by os.path==6)''',
+        package_name=package_name)
+
+
+def test_main_error_just_file(requirements_file_one_unused,
+                              constraints_file_package_disallowed,
+                              python_source_file, package_name):
+    result = run_check(
+        requirements=requirements_file_one_unused,
+        constraints=constraints_file_package_disallowed,
+        verbose=1,
+        files=[
+            python_source_file
+        ]
+    )
+    assert result.exit_code == 1
+    assert result.output == format_output(
+        '''
+Parsed 14 imports in 1 files
+Error: Unused requirements or violated constraints found
+unused (unused requirement)''', '''
+{package_name}==0 (constraint violated by {package_name}==1)
+csv>1 (constraint violated by csv==1)
+re<=3,>1 (constraint violated by re==1)
+''', package_name=package_name)
+
+
+def test_insufficient_args(python_source_file):
+    result = run_check(
+        files=[
+            python_source_file
+        ]
+    )
     assert result.exit_code == 2
     assert result.output == ('''
 Usage: check [OPTIONS] [EXCLUDE]... SOURCECODE
@@ -185,15 +307,20 @@ Error: Invalid value: no checks performed; supply either --requirements '''
 '''.lstrip())
 
 
-def test_socket(runner, tmpdir, requirements_file, constraints_file):
-    socket_file = tmpdir.join('s')
+def test_socket(requirements_file, constraints_file):
+    # Make our own temp dir because tmpdir's are too long to be unix sockets
+    tempdir = tempfile.mkdtemp()
+    socket_file = os.path.realpath(os.path.join(tempdir, 's'))
     try:
         python_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         python_socket.bind(str(socket_file))
-        result = runner.invoke(check, ['--requirements', requirements_file,
-                                       '--constraints', constraints_file,
-                                       str(socket_file)],
-                               catch_exceptions=False)
+        result = run_check(
+            requirements=requirements_file,
+            constraints=constraints_file,
+            files=[
+                str(socket_file)
+            ]
+        )
         assert result.exit_code == 2
         assert result.output == ('''
 Usage: check [OPTIONS] [EXCLUDE]... SOURCECODE
@@ -203,3 +330,5 @@ Error: Invalid value: could not parse SOURCECODE '%s'; path is either not a '''
 '''.lstrip() % str(socket_file))
     finally:
         python_socket.close()
+        os.remove(socket_file)
+        os.rmdir(tempdir)
