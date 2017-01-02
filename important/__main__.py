@@ -11,17 +11,23 @@ from important.check import check_unused_requirements, check_import_frequencies
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 
+CONTEXT_SETTINGS = {
+    'help_option_names': ['-h', '--help']
+}
+
+
 @click.command(help="Check imports within SOURCECODE (except those files "
                     "provided in EXCLUDE) for either unused requirements or "
-                    "an import frequency that violates some constraints.")
-@click.option('--requirements', multiple=True,
+                    "an import frequency that violates some constraints.",
+               context_settings=CONTEXT_SETTINGS)
+@click.option('--requirements', '-r', multiple=True,
               help="Requirement(s) file(s) to check for unused entries by "
                    "comparing against imports in source code; for formatting, "
                    "see pip's documentation https://pip.pypa.io/",
               type=click.Path(exists=True, file_okay=True, dir_okay=False,
                               writable=False, readable=True,
                               resolve_path=True))
-@click.option('--constraints', multiple=True,
+@click.option('--constraints', '-c', multiple=True,
               help="Requirement(s) file(s) to interpret as constraints on the "
                    "frequency of imports in source code.  Version numbers are "
                    "interpreted as frequency constraints, e.g., `os.path<5` "
@@ -40,6 +46,14 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
               type=click.Path(exists=True, file_okay=True, dir_okay=False,
                               writable=False, readable=True,
                               resolve_path=True))
+@click.option('--ignore', '-i', multiple=True,
+              help="Requirement names to ignore when searching for unused "
+                   "requirements")
+@click.option('--ignorefile', multiple=True,
+              help="Requirement(s) to ignore specified in requirements files",
+              type=click.Path(exists=True, file_okay=True, dir_okay=False,
+                              writable=False, readable=True,
+                              resolve_path=True))
 @click.argument('exclude', nargs=-1,
                 type=click.Path(exists=True, file_okay=True, dir_okay=True,
                                 writable=False, readable=True,
@@ -49,7 +63,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
                                 writable=False, readable=True,
                                 resolve_path=True))
 @click.option('-v', '--verbose', count=True)
-def check(requirements, constraints, exclude, sourcecode, verbose):
+def check(requirements, constraints, ignore, ignorefile, exclude, sourcecode,
+          verbose):
     # Validate options
     if not requirements and not constraints:
         raise click.BadParameter('no checks performed; supply either '
@@ -62,6 +77,18 @@ def check(requirements, constraints, exclude, sourcecode, verbose):
     parsed_contraints = []
     for contraints_path in constraints:
         parsed_contraints.extend(parse_requirements(contraints_path))
+
+    # Remove requirements that are ignored
+    ignore = list(ignore)
+    for ignorefile_path in ignorefile:
+        ignore.extend(
+            (r.name for r in parse_requirements(ignorefile_path))
+        )
+    if ignore:
+        parsed_requirements = filter(
+            lambda r: r.name not in ignore,
+            parsed_requirements
+        )
 
     if verbose >= 2:
         click.echo('Read requirements:')
