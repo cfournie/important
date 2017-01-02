@@ -1,8 +1,9 @@
 -r requirements.txt
-pytest
+pytest>=2.7
 pytest-cov
 pytest-mock
 flake8
+mock
 
 # Modules tested
 dnspython       # Installed as directory `dns`

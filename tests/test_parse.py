@@ -3,7 +3,11 @@ import pytest
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
     parse_requirements, Import, RE_SHEBANG, \
     translate_requirement_to_module_names
-from unittest.mock import Mock
+
+try:
+    from unittest.mock import Mock
+except:
+    from mock import Mock
 
 
 def test_imports(python_source, python_imports):
