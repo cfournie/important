@@ -1,7 +1,9 @@
 import pytest
+
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
     parse_requirements, Import, RE_SHEBANG, \
     translate_requirement_to_module_names
+from unittest.mock import Mock
 
 
 def test_imports(python_source, python_imports):
@@ -72,11 +74,32 @@ def test_requirements_editable(tmpdir):
         'Cannot parse SomeDependency: editable projects unsupported'
 
 
-def test_translate_requirement_to_module_names():
+def test_translate_requirement_to_module_names(mocker):
+    logger = Mock()
+    mocker.patch('important.parse.logger', logger)
+
     assert translate_requirement_to_module_names('click') == set(['click'])
+    logger.warning.assert_not_called()
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('packaging') == \
         set(['packaging'])
+    logger.warning.assert_called_with("Cannot find install location of \
+'packaging'; please install this package for more accurate name resolution")
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('pip') == set(['pip'])
+    logger.warning.assert_not_called()
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('dnspython') == set(['dns'])
+    logger.warning.assert_not_called()
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('fake') == set(['fake'])
+    logger.warning.assert_called_with("Cannot find install location of \
+'fake'; please install this package for more accurate name resolution")
+
+    logger.reset_mock()
     assert translate_requirement_to_module_names('os.path') == set(['os.path'])
+    logger.warning.assert_not_called()

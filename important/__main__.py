@@ -1,9 +1,14 @@
 import click
+import logging
 import os
+import sys
+
 from important.parse import parse_dir_imports, parse_file_imports, \
     parse_requirements
 from important.check import check_unused_requirements, check_import_frequencies
-import sys
+
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 
 @click.command(help="Check imports within SOURCECODE (except those files "

@@ -2,8 +2,10 @@ import ast
 import logging
 import os
 import pip
+import pkgutil
 import re
 import stat
+import sys
 
 from collections import namedtuple
 from pip.commands.show import search_packages_info
@@ -11,6 +13,9 @@ from pip.req import parse_requirements as pip_parse_requirements
 
 
 RE_SHEBANG = re.compile('^#![^\n]*python[0-9]?$')
+ALL_MODULES = set(
+    m[1] for m in pkgutil.iter_modules()) | set(
+        sys.builtin_module_names)
 
 Import = namedtuple('Import', ['module', 'filename', 'lineno', 'col_offset'])
 
@@ -63,7 +68,7 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
             yield Import(module, display_filepath, lineno, col_offset)
     except SyntaxError as e:
         logger.warning('Skipping {filename} due to syntax error: {error}'
-                        .format(filename=e.filename, error=str(e)))
+                       .format(filename=e.filename, error=str(e)))
 
 
 def _is_script(filepath):
@@ -142,6 +147,9 @@ def translate_requirement_to_module_names(requirement_name):
     if provides:
         return provides
     else:
-        logger.warning("Cannot find installation files for requirement '{requirement}'; please install this package for more accurate name resolution".format(requirement=requirement_name))
-            
-    return provides if provides else set([requirement_name])
+        module_name = requirement_name.split('.')[0]
+        if module_name not in ALL_MODULES:
+            logger.warning("Cannot find install location of '{requirement}'; please \
+install this package for more accurate name resolution"
+                           .format(requirement=requirement_name))
+        return provides if provides else set([requirement_name])
