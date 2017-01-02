@@ -14,6 +14,8 @@ RE_SHEBANG = re.compile('^#![^\n]*python[0-9]?$')
 
 Import = namedtuple('Import', ['module', 'filename', 'lineno', 'col_offset'])
 
+logger = logging.getLogger()
+
 
 def _imports(source):
     def _ast_imports(root):
@@ -60,7 +62,7 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
             module, lineno, col_offset = statement
             yield Import(module, display_filepath, lineno, col_offset)
     except SyntaxError as e:
-        logging.warning('Skipping {filename} due to syntax error: {error}'
+        logger.warning('Skipping {filename} due to syntax error: {error}'
                         .format(filename=e.filename, error=str(e)))
 
 
@@ -136,4 +138,10 @@ def translate_requirement_to_module_names(requirement_name):
             top_level_files = filter(is_top_level_file, result['files'])
             provides |= set([os.path.splitext(filename)[0]
                              for filename in top_level_files])
+
+    if provides:
+        return provides
+    else:
+        logger.warning("Cannot find installation files for requirement '{requirement}'; please install this package for more accurate name resolution".format(requirement=requirement_name))
+            
     return provides if provides else set([requirement_name])
