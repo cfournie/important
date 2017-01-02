@@ -34,4 +34,5 @@ setup(
             'important = important.__main__:check',
         ],
     },
+    install_requires=['pip', 'click'],
 )
