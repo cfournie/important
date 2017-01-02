@@ -4,9 +4,8 @@ from important.check import check_unused_requirements, \
     frequency_count_imports, check_import_frequencies
 
 
-def test_unused_requirements(
-        python_file_imports,
-        requirements_file_one_unused):
+def test_unused_requirements(python_file_imports,
+                             requirements_file_one_unused):
     requirements = parse_requirements(requirements_file_one_unused)
     unused_requirements = check_unused_requirements(
         python_file_imports, requirements)
@@ -14,7 +13,7 @@ def test_unused_requirements(
 
 
 def test_frequency_count_imports(python_file_imports, import_name):
-    assert frequency_count_imports(python_file_imports) == {
+    expected = {
         import_name: 3,
         'collections': 3,
         'copy': 6,
@@ -28,6 +27,13 @@ def test_frequency_count_imports(python_file_imports, import_name):
         'sys': 3,
         'time': 3
     }
+    # Also expect shorter forms of submodules (e.g. for `os.path` also
+    # expect `os`)
+    if '.' in import_name:
+        for dots in range(1, import_name.count('.') + 1):
+            new_import_name = '.'.join(import_name.split('.')[:dots])
+            expected[new_import_name] = 3
+    assert frequency_count_imports(python_file_imports) == expected
 
 
 def test_check_import_frequencies(

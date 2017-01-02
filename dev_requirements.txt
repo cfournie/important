@@ -11,3 +11,5 @@ IPy             # Cased and installed as top-level Python file `IPy.py`
 numpy           # Has compiled C code; installed as a wheel
 pyyaml          # Installed as directory `yaml`
 beautifulsoup4  # Installed as directory `bs4`
+cssutils
+matplotlib

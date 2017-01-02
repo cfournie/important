@@ -12,6 +12,9 @@ IMPORT_STATEMENT_TO_IMPORT = {
     'import numpy as np': 'numpy',
     'import yaml': 'yaml',
     'from bs4 import BeautifulSoup': 'bs4',
+    'import pylab': 'pylab',
+    'import matplotlib.pyplot as plt': 'matplotlib.pyplot',
+    'import cssutils': 'cssutils',
 }
 
 IMPORT_TO_PACKAGE = {
@@ -21,6 +24,10 @@ IMPORT_TO_PACKAGE = {
     'numpy': 'numpy',  # package with C extensions
     'yaml': 'pyyaml',  # package installed with differing name
     'bs4': 'beautifulsoup4',  # package installed with differing name
+    'matplotlib': 'matplotlib',
+    'cssutils': 'cssutils',
+    'pylab': 'matplotlib',
+    'matplotlib.pyplot': 'matplotlib'
 }
 
 
