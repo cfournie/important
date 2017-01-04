@@ -1,5 +1,7 @@
 .. image:: https://travis-ci.org/cfournie/important.svg?branch=master
     :target: https://travis-ci.org/cfournie/important
+.. image:: https://coveralls.io/repos/github/cfournie/important/badge.svg?branch=master
+    :target: https://coveralls.io/github/cfournie/important?branch=master
 
 Important
 =========
@@ -17,9 +19,7 @@ Coming to pypi soon, but in the meantime, install from source using:
 
 .. code:: bash
 
-    $ git clone https://github.com/cfournie/important.git
-    $ cd important
-    $ pip install .
+    $ pip install https://github.com/cfournie/important.git
 
 Requirements
 ------------
@@ -59,3 +59,11 @@ Check for unused requirements but exclude test files using:
     $ important -v --requirements requirements.txt **/test_*.py .
     Error: Unused requirements or violated constraints found
     caniusepython3 (unused requirement)
+
+
+Ignore errors related to some of your requirements using:
+
+.. code:: bash
+
+   $ important -v --requirements requirements.txt --ignore caniusepython3 .
+   $ important -v --requirements requirements.txt --ignorefile ignored.txt .

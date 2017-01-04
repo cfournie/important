@@ -209,7 +209,8 @@ os.path<6
 {package_name}==0
 enum<10
 csv>1
-    re>1,<=3'''.strip().format(
+other
+re>1,<=3'''.strip().format(
         package_name=package_name
     ))
     return str(constraints_file)

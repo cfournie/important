@@ -88,13 +88,10 @@ def _is_script(filepath):
     return False
 
 
-def parse_dir_imports(current_directory, exclusions=None, root_directory=None):
+def parse_dir_imports(current_directory, exclusions=None):
     # Skip if this directory is supposed to be excluded
     if is_excluded(current_directory, exclusions):
         return
-    # Create a directory to report filepaths relative to
-    if root_directory is None:
-        root_directory = current_directory
     # Iterate over all Python/script files
     for root, dirs, files in os.walk(current_directory, topdown=True):
         dirs[:] = filter(lambda d: d not in exclusions,
@@ -138,16 +135,15 @@ def translate_requirement_to_module_names(requirement_name):
             filepath.endswith('.py')
 
     for result in search_packages_info([requirement_name]):
-        if 'files' in result:
-            # Handle modules that are installed as folders in site-packages
-            folders = map(lambda filepath: os.path.dirname(filepath),
-                          result['files'])
-            folders = filter(is_module_folder, folders)
-            provides |= set(folders)
-            # Handle modules that are installed as .py files in site-packages
-            top_level_files = filter(is_top_level_file, result['files'])
-            provides |= set([os.path.splitext(filename)[0]
-                             for filename in top_level_files])
+        # Handle modules that are installed as folders in site-packages
+        folders = map(lambda filepath: os.path.dirname(filepath),
+                      result['files'])
+        folders = filter(is_module_folder, folders)
+        provides |= set(folders)
+        # Handle modules that are installed as .py files in site-packages
+        top_level_files = filter(is_top_level_file, result['files'])
+        provides |= set([os.path.splitext(filename)[0]
+                         for filename in top_level_files])
 
     if provides:
         return provides

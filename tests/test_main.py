@@ -55,6 +55,35 @@ def format_output(*output, **kwargs):
             package_name=package_name) for part in output)) + '\n'
 
 
+def test_main_just_requirements(requirements_file, python_source_dir,
+                                python_excluded_file, python_excluded_dir):
+    result = run_check(
+        requirements=(requirements_file,),
+        exclude=(
+            python_excluded_file,
+            python_excluded_dir,
+        ),
+        sourcecode=python_source_dir,
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == ''
+
+
+def test_main_just_constraints(constraints_file, python_source_dir,
+                               python_excluded_file, python_excluded_dir):
+    result = run_check(
+        constraints=(constraints_file,),
+        verbose=0,
+        exclude=(
+            python_excluded_file,
+            python_excluded_dir,
+        ),
+        sourcecode=python_source_dir,
+    )
+    assert result.exit_code == 0, result.output
+    assert result.output == ''
+
+
 def test_main_verbosity_level_0(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir):
