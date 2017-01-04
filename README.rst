@@ -19,7 +19,7 @@ Coming to pypi soon, but in the meantime, install from source using:
 
 .. code:: bash
 
-    $ pip install https://github.com/cfournie/important.git
+    $ pip install git+https://github.com/cfournie/important.git
 
 Requirements
 ------------
