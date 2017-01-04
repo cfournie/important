@@ -7,22 +7,26 @@ from click.testing import CliRunner
 from important.__main__ import check
 
 
-def run_check(requirements=None, constraints=None, verbose=0, files=None):
+def run_check(requirements=None, constraints=None, ignore=None,
+              ignorefile=None, verbose=0, exclude=None, sourcecode=None):
     runner_args = []
     if requirements:
-        runner_args.extend([
-            '--requirements', requirements
-        ])
+        for requirements_file in requirements:
+            runner_args.extend(['--requirements', requirements_file])
     if constraints:
-        runner_args.extend([
-            '--constraints', constraints
-        ])
+        for constraints_file in constraints:
+            runner_args.extend(['--constraints', constraints_file])
+    if ignore:
+        for ignored_requirement in ignore:
+            runner_args.extend(['--ignore', ignored_requirement])
+    if ignorefile:
+        for ignorefile_path in ignorefile:
+            runner_args.extend(['--ignorefile', ignorefile_path])
     if verbose:
-        runner_args.extend([
-            '-' + verbose * 'v'
-        ])
-    if files:
-        runner_args.extend(files)
+        runner_args.append('-' + verbose * 'v')
+    if exclude:
+        runner_args.extend(exclude)
+    runner_args.append(sourcecode)
     return CliRunner().invoke(check, runner_args, catch_exceptions=False)
 
 
@@ -55,14 +59,14 @@ def test_main_verbosity_level_0(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir):
     result = run_check(
-        requirements=requirements_file,
-        constraints=constraints_file,
+        requirements=(requirements_file,),
+        constraints=(constraints_file,),
         verbose=0,
-        files=[
+        exclude=(
             python_excluded_file,
             python_excluded_dir,
-            python_source_dir
-        ]
+        ),
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 0, result.output
     assert result.output == ''
@@ -72,14 +76,14 @@ def test_main_verbosity_level_1(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir):
     result = run_check(
-        requirements=requirements_file,
-        constraints=constraints_file,
+        requirements=(requirements_file,),
+        constraints=(constraints_file,),
         verbose=1,
-        files=[
+        exclude=(
             python_excluded_file,
             python_excluded_dir,
-            python_source_dir
-        ]
+        ),
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 0, result.output
     assert result.output == '''
@@ -91,14 +95,14 @@ def test_main_verbosity_level_2(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir, package_name):
     result = run_check(
-        requirements=requirements_file,
-        constraints=constraints_file,
+        requirements=(requirements_file,),
+        constraints=(constraints_file,),
         verbose=2,
-        files=[
+        exclude=(
             python_excluded_file,
             python_excluded_dir,
-            python_source_dir
-        ]
+        ),
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 0, result.output
     assert result.output == format_output('''
@@ -125,14 +129,14 @@ def test_main_verbosity_level_3(requirements_file, constraints_file,
                                 python_excluded_dir, package_name,
                                 import_name):
     result = run_check(
-        requirements=requirements_file,
-        constraints=constraints_file,
+        requirements=(requirements_file,),
+        constraints=(constraints_file,),
         verbose=3,
-        files=[
+        exclude=(
             python_excluded_file,
             python_excluded_dir,
-            python_source_dir
-        ]
+        ),
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 0, result.output
     assert result.output == format_output('''
@@ -207,14 +211,14 @@ def test_main_error_verbosity_level_0(
         python_excluded_dir,
         package_name):
     result = run_check(
-        requirements=requirements_file_one_unused,
-        constraints=constraints_file_package_disallowed,
+        requirements=(requirements_file_one_unused,),
+        constraints=(constraints_file_package_disallowed,),
         verbose=0,
-        files=[
+        exclude=(
             python_excluded_file,
             python_excluded_dir,
-            python_source_dir
-        ]
+        ),
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 1
     assert result.output == ''
@@ -225,14 +229,14 @@ def test_main_error_verbosity_level_1(requirements_file_one_unused,
                                       python_source_dir, python_excluded_file,
                                       python_excluded_dir, package_name):
     result = run_check(
-        requirements=requirements_file_one_unused,
-        constraints=constraints_file_package_disallowed,
+        requirements=(requirements_file_one_unused,),
+        constraints=(constraints_file_package_disallowed,),
         verbose=1,
-        files=[
+        exclude=(
             python_excluded_file,
             python_excluded_dir,
-            python_source_dir
-        ]
+        ),
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -246,16 +250,68 @@ os.path<6 (constraint violated by os.path==6)''',
         package_name=package_name)
 
 
+def test_main_ignored_error(tmpdir, requirements_file_one_unused,
+                            constraints_file_package_disallowed,
+                            python_source_dir, python_excluded_file,
+                            python_excluded_dir, package_name):
+    # Test with ignore option
+    result = run_check(
+        requirements=(requirements_file_one_unused,),
+        constraints=(constraints_file_package_disallowed,),
+        ignore=('unused',),
+        verbose=1,
+        exclude=(
+            python_excluded_file,
+            python_excluded_dir,
+        ),
+        sourcecode=python_source_dir,
+    )
+    assert result.exit_code == 1
+    assert result.output == format_output(
+        '''
+Parsed 42 imports in 3 files
+Error: Unused requirements or violated constraints found''', '''
+{package_name}==0 (constraint violated by {package_name}==3)
+os<6 (constraint violated by os==9)
+os.path<6 (constraint violated by os.path==6)''',
+        package_name=package_name)
+
+    # Create ignorefile
+    ignorefile = tmpdir.join('ignore.txt')
+    ignorefile.write('unused')
+    ignorefile = str(ignorefile)
+
+    # Test with ignorefile options
+    result = run_check(
+        requirements=(requirements_file_one_unused,),
+        constraints=(constraints_file_package_disallowed,),
+        ignorefile=(ignorefile,),
+        verbose=1,
+        exclude=(
+            python_excluded_file,
+            python_excluded_dir,
+        ),
+        sourcecode=python_source_dir,
+    )
+    assert result.exit_code == 1
+    assert result.output == format_output(
+        '''
+Parsed 42 imports in 3 files
+Error: Unused requirements or violated constraints found''', '''
+{package_name}==0 (constraint violated by {package_name}==3)
+os<6 (constraint violated by os==9)
+os.path<6 (constraint violated by os.path==6)''',
+        package_name=package_name)
+
+
 def test_main_error_just_dir(requirements_file_one_unused,
                              constraints_file_package_disallowed,
                              python_source_dir, package_name):
     result = run_check(
-        requirements=requirements_file_one_unused,
-        constraints=constraints_file_package_disallowed,
+        requirements=(requirements_file_one_unused,),
+        constraints=(constraints_file_package_disallowed,),
         verbose=1,
-        files=[
-            python_source_dir
-        ]
+        sourcecode=python_source_dir,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -273,12 +329,10 @@ def test_main_error_just_file(requirements_file_one_unused,
                               constraints_file_package_disallowed,
                               python_source_file, package_name):
     result = run_check(
-        requirements=requirements_file_one_unused,
-        constraints=constraints_file_package_disallowed,
+        requirements=(requirements_file_one_unused,),
+        constraints=(constraints_file_package_disallowed,),
         verbose=1,
-        files=[
-            python_source_file
-        ]
+        sourcecode=python_source_file,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -294,9 +348,7 @@ re<=3,>1 (constraint violated by re==1)
 
 def test_insufficient_args(python_source_file):
     result = run_check(
-        files=[
-            python_source_file
-        ]
+        sourcecode=python_source_file
     )
     assert result.exit_code == 2
     assert result.output == ('''
@@ -315,11 +367,9 @@ def test_socket(requirements_file, constraints_file):
         python_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         python_socket.bind(str(socket_file))
         result = run_check(
-            requirements=requirements_file,
-            constraints=constraints_file,
-            files=[
-                str(socket_file)
-            ]
+            requirements=(requirements_file,),
+            constraints=(constraints_file,),
+            sourcecode=str(socket_file),
         )
         assert result.exit_code == 2
         assert result.output == ('''
