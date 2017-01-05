@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from important.parse import parse_requirements
 from important.check import check_unused_requirements, \
     frequency_count_imports, check_import_frequencies
