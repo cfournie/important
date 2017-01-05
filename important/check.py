@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from collections import defaultdict
 from important.parse import translate_requirement_to_module_names
 

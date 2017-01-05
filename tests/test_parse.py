@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+import codecs
 import os
 import pytest
 import stat
@@ -41,6 +45,27 @@ def test_file_imports_with_syntax_error(mocker, python_source_file):
             error='invalid syntax (test.py, line 21)'
         )
     )
+
+
+def test_file_imports_with_utf8_encoding(mocker, tmpdir):
+    python_source_file = str(tmpdir.join('utf8.py'))
+    with codecs.open(python_source_file, mode='w', encoding='utf8') as fh:
+        fh.write(
+            '''# -*- coding: utf-8 -*-
+import os
+
+print('uʍop ǝpısdn')'''
+        )
+
+    logger = Mock()
+    mocker.patch('important.parse.logger', logger)
+
+    # Attempt to parse and assert that it logged a warning
+    assert list(parse_file_imports(python_source_file)) == [
+        Import(module='os', filename='utf8.py', lineno=2, col_offset=0)
+    ]
+
+    logger.warning.assert_not_called()
 
 
 def test_file_imports_binary_file(mocker, binary_file):

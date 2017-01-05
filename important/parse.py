@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import ast
 import logging
 import os
@@ -63,6 +65,14 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     try:
         with open(filepath) as fh:
             source = fh.read()
+        # Remove lines with only comments (e.g. PEP 263 encodings)
+        source = '\n'.join(
+            map(
+                lambda l: '' if l.startswith('#') else l,
+                source.split('\n')
+            )
+        )
+        # Parse
         statements = ast.parse(source, filename=filepath)
         for statement in _imports(statements):
             module, lineno, col_offset = statement
