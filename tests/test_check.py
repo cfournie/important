@@ -14,27 +14,31 @@ def test_unused_requirements(python_file_imports,
     assert set(unused_requirements) == {'unused'}
 
 
-def test_frequency_count_imports(python_file_imports, import_name):
+def test_frequency_count_imports(
+        python_file_imports,
+        import_name,
+        python_files_parsed):
     expected = {
-        import_name: 3,
-        'collections': 3,
-        'copy': 6,
-        'csv': 3,
-        'enum': 3,
-        'math': 3,
-        'os': 9,
-        'os.path': 6,
-        'parser': 3,
-        're': 3,
-        'sys': 3,
-        'time': 3
+        '__future__': len(python_files_parsed),
+        import_name: len(python_files_parsed),
+        'collections': len(python_files_parsed),
+        'copy': len(python_files_parsed) * 2,
+        'csv': len(python_files_parsed),
+        'enum': len(python_files_parsed),
+        'math': len(python_files_parsed),
+        'os': len(python_files_parsed) * 3,
+        'os.path': len(python_files_parsed) * 2,
+        'parser': len(python_files_parsed),
+        're': len(python_files_parsed),
+        'sys': len(python_files_parsed),
+        'time': len(python_files_parsed),
     }
     # Also expect shorter forms of submodules (e.g. for `os.path` also
     # expect `os`)
     if '.' in import_name:
         for dots in range(1, import_name.count('.') + 1):
             new_import_name = '.'.join(import_name.split('.')[:dots])
-            expected[new_import_name] = 3
+            expected[new_import_name] = len(python_files_parsed)
     assert frequency_count_imports(python_file_imports) == expected
 
 

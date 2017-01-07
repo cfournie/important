@@ -25,7 +25,7 @@ Import = namedtuple('Import', ['module', 'filename', 'lineno', 'col_offset'])
 logger = logging.getLogger()
 
 
-def _imports(source):
+def _imports(source, filepath):
     def _ast_imports(root):
         for node in ast.iter_child_nodes(root):
             if isinstance(node, ast.ImportFrom):
@@ -36,7 +36,8 @@ def _imports(source):
             else:
                 for statement in _ast_imports(node):
                     yield statement
-    for statement in _ast_imports(ast.parse(source)):
+    root = ast.parse(source, filename=filepath)
+    for statement in _ast_imports(root):
         yield statement
 
 
@@ -73,8 +74,7 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
             )
         )
         # Parse
-        statements = ast.parse(source, filename=filepath)
-        for statement in _imports(statements):
+        for statement in _imports(source, filepath):
             module, lineno, col_offset = statement
             yield Import(module, display_filepath, lineno, col_offset)
     except SyntaxError as e:
@@ -107,6 +107,8 @@ def parse_dir_imports(current_directory, exclusions=None):
         dirs[:] = filter(lambda d: d not in exclusions,
                          [os.path.join(root, d) for d in dirs])
         for filename in files:
+            filename = filename.decode('utf-8') \
+                if hasattr(filename, 'decode') else filename
             filepath = os.path.join(root, filename)
             if filename.endswith('.py') or _is_script(filepath):
                 for statement in parse_file_imports(filepath, exclusions,
