@@ -156,7 +156,7 @@ Parsed 42 imports in 3 files
 def test_main_verbosity_level_3(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir, package_name,
-                                import_name):
+                                import_name, python_file_imports):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -167,6 +167,19 @@ def test_main_verbosity_level_3(requirements_file, constraints_file,
         ),
         sourcecode=python_source_dir,
     )
+
+    imports = '\n'.join(
+        '{module}={filename}:{lineno}'.format(
+            module=import_object.module,
+            filename=import_object.filename,
+            lineno=import_object.lineno,
+        )
+        for import_object in sorted(
+            python_file_imports,
+            key=lambda r: (r.module, r.filename)
+        )
+    )
+
     assert result.exit_code == 0, result.output
     assert result.output == format_output('''
 Read requirements:''', '''
@@ -186,50 +199,7 @@ unused==0''', '''
 Parsed 42 imports in 3 files
 scriptfile
 subdir/test3.py
-test1.py''', '''
-{import_name}=scriptfile:7
-{import_name}=subdir/test3.py:7
-{import_name}=test1.py:7
-collections=scriptfile:2
-collections=subdir/test3.py:2
-collections=test1.py:2
-copy=scriptfile:5
-copy=scriptfile:6
-copy=subdir/test3.py:5
-copy=subdir/test3.py:6
-copy=test1.py:5
-copy=test1.py:6
-csv=scriptfile:21
-csv=subdir/test3.py:21
-csv=test1.py:21
-enum=scriptfile:18
-enum=subdir/test3.py:18
-enum=test1.py:18
-math=scriptfile:3
-math=subdir/test3.py:3
-math=test1.py:3
-os=scriptfile:4
-os=subdir/test3.py:4
-os=test1.py:4
-os.path=scriptfile:9
-os.path=scriptfile:10
-os.path=subdir/test3.py:9
-os.path=subdir/test3.py:10
-os.path=test1.py:9
-os.path=test1.py:10
-parser=scriptfile:15
-parser=subdir/test3.py:15
-parser=test1.py:15
-re=scriptfile:8
-re=subdir/test3.py:8
-re=test1.py:8
-sys=scriptfile:8
-sys=subdir/test3.py:8
-sys=test1.py:8
-time=scriptfile:8
-time=subdir/test3.py:8
-time=test1.py:8
-''', package_name=package_name, import_name=import_name)
+test1.py''', imports, package_name=package_name, import_name=import_name)
 
 
 def test_main_error_verbosity_level_0(
