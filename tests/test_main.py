@@ -4,7 +4,6 @@ import os
 import pytest
 import re
 import socket
-import sys
 import tempfile
 
 from configparser import ConfigParser
@@ -16,12 +15,10 @@ try:
 except:
     pass  # Python 2.7 provides reload built in
 
-ENCODING = 'utf-8' if sys.version_info > (3, 0) else 'utf8'
 
-
-def run_check(requirements=None, constraints=None, ignore=None,
-              ignorefile=None, verbose=0, exclude=None, sourcecode=None,
-              use_setupcfg=False, tmpdir=None):
+def run_check(tmpdir, encoding, requirements=None, constraints=None,
+              ignore=None, ignorefile=None, verbose=0, exclude=None,
+              sourcecode=None, use_setupcfg=False):
     # Compose args
     runner_args = []
     setup_cfg = {}
@@ -60,7 +57,7 @@ def run_check(requirements=None, constraints=None, ignore=None,
                 value = '\n'.join(value)
             config.set('important', key, value)
         filepath = str(tmpdir.join('setup.cfg'))
-        with codecs.open(filepath, 'w', encoding=ENCODING) as f:
+        with codecs.open(filepath, 'w', encoding=encoding) as f:
             config.write(f)
 
     # Run cli
@@ -107,7 +104,7 @@ def format_output(*output, **kwargs):
 @pytest.mark.parametrize('setupcfg', ('setupcfg', 'cliargs'))
 def test_main_just_requirements(requirements_file, python_source_dir,
                                 python_excluded_file, python_excluded_dir,
-                                setupcfg, tmpdir):
+                                setupcfg, tmpdir, encoding):
     result = run_check(
         requirements=(requirements_file,),
         exclude=(
@@ -117,6 +114,7 @@ def test_main_just_requirements(requirements_file, python_source_dir,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 0, result.output
     assert result.output == ''
@@ -125,7 +123,7 @@ def test_main_just_requirements(requirements_file, python_source_dir,
 @pytest.mark.parametrize('setupcfg', ('setupcfg', 'cliargs'))
 def test_main_just_constraints(constraints_file, python_source_dir,
                                python_excluded_file, python_excluded_dir,
-                               setupcfg, tmpdir):
+                               setupcfg, tmpdir, encoding):
     result = run_check(
         constraints=(constraints_file,),
         verbose=0,
@@ -136,6 +134,7 @@ def test_main_just_constraints(constraints_file, python_source_dir,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 0, result.output
     assert result.output == ''
@@ -144,7 +143,8 @@ def test_main_just_constraints(constraints_file, python_source_dir,
 @pytest.mark.parametrize('setupcfg', ('setupcfg', 'cliargs'))
 def test_main_verbosity_level_0(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
-                                python_excluded_dir, setupcfg, tmpdir):
+                                python_excluded_dir, setupcfg, tmpdir,
+                                encoding):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -156,6 +156,7 @@ def test_main_verbosity_level_0(requirements_file, constraints_file,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 0, result.output
     assert result.output == ''
@@ -165,7 +166,8 @@ def test_main_verbosity_level_0(requirements_file, constraints_file,
 def test_main_verbosity_level_1(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir, python_imports,
-                                python_files_parsed, setupcfg, tmpdir):
+                                python_files_parsed, setupcfg, tmpdir,
+                                encoding):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -177,6 +179,7 @@ def test_main_verbosity_level_1(requirements_file, constraints_file,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 0, result.output
     assert result.output == '''
@@ -191,7 +194,7 @@ def test_main_verbosity_level_2(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir, package_name,
                                 python_imports, python_files_parsed,
-                                setupcfg, tmpdir):
+                                setupcfg, tmpdir, encoding):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -203,6 +206,7 @@ def test_main_verbosity_level_2(requirements_file, constraints_file,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 0, result.output
     assert result.output == format_output(
@@ -239,7 +243,7 @@ def test_main_verbosity_level_3(requirements_file, constraints_file,
                                 python_excluded_dir, package_name,
                                 import_name, python_file_imports,
                                 python_imports, python_files_parsed,
-                                setupcfg, tmpdir):
+                                setupcfg, tmpdir, encoding):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -251,6 +255,7 @@ def test_main_verbosity_level_3(requirements_file, constraints_file,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
 
     imports = '\n'.join(
@@ -303,7 +308,7 @@ def test_main_error_verbosity_level_0(requirements_file_one_unused,
                                       constraints_file_package_disallowed,
                                       python_source_dir, python_excluded_file,
                                       python_excluded_dir, package_name,
-                                      setupcfg, tmpdir):
+                                      setupcfg, tmpdir, encoding):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -315,6 +320,7 @@ def test_main_error_verbosity_level_0(requirements_file_one_unused,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 1
     assert result.output == ''
@@ -326,7 +332,7 @@ def test_main_error_verbosity_level_1(requirements_file_one_unused,
                                       python_source_dir, python_excluded_file,
                                       python_excluded_dir, package_name,
                                       python_imports, python_files_parsed,
-                                      setupcfg, tmpdir):
+                                      setupcfg, tmpdir, encoding):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -338,6 +344,7 @@ def test_main_error_verbosity_level_1(requirements_file_one_unused,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -359,7 +366,7 @@ def test_main_ignored_error(requirements_file_one_unused,
                             python_source_dir, python_excluded_file,
                             python_excluded_dir, package_name,
                             python_imports, python_files_parsed,
-                            setupcfg, tmpdir):
+                            setupcfg, tmpdir, encoding):
     # Test with ignore option
     result = run_check(
         requirements=(requirements_file_one_unused,),
@@ -373,6 +380,7 @@ def test_main_ignored_error(requirements_file_one_unused,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -404,6 +412,7 @@ os.path<6 (constraint violated by os.path==6)''',
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -423,7 +432,7 @@ def test_main_error_just_dir(requirements_file_one_unused,
                              constraints_file_package_disallowed,
                              python_source_dir, package_name,
                              python_imports, python_files_parsed,
-                             setupcfg, tmpdir):
+                             setupcfg, tmpdir, encoding):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -431,6 +440,7 @@ def test_main_error_just_dir(requirements_file_one_unused,
         sourcecode=python_source_dir,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -450,7 +460,8 @@ os.path<6 (constraint violated by os.path==6)''',
 def test_main_error_just_file(requirements_file_one_unused,
                               constraints_file_package_disallowed,
                               python_source_file, package_name,
-                              python_imports, setupcfg, tmpdir):
+                              python_imports, setupcfg, tmpdir,
+                              encoding):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -458,6 +469,7 @@ def test_main_error_just_file(requirements_file_one_unused,
         sourcecode=python_source_file,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 1
     assert result.output == format_output(
@@ -472,11 +484,12 @@ re<=3,>1 (constraint violated by re==1)
 
 
 @pytest.mark.parametrize('setupcfg', ('setupcfg', 'cliargs'))
-def test_insufficient_args(python_source_file, setupcfg, tmpdir):
+def test_insufficient_args(python_source_file, setupcfg, tmpdir, encoding):
     result = run_check(
         sourcecode=python_source_file,
         use_setupcfg=setupcfg == 'setupcfg',
         tmpdir=tmpdir,
+        encoding=encoding,
     )
     assert result.exit_code == 2
     assert result.output == ('''
@@ -487,7 +500,7 @@ Error: Invalid value: no checks performed; supply either --requirements '''
 '''.lstrip())
 
 
-def test_socket(requirements_file, constraints_file):
+def test_socket(requirements_file, constraints_file, encoding):
     # Make our own temp dir because tmpdir's are too long to be unix sockets
     tempdir = tempfile.mkdtemp()
     socket_file = os.path.realpath(os.path.join(tempdir, 's'))
@@ -499,6 +512,7 @@ def test_socket(requirements_file, constraints_file):
             constraints=(constraints_file,),
             sourcecode=str(socket_file),
             tmpdir=tempdir,
+            encoding=encoding,
         )
         assert result.exit_code == 2
         assert result.output == ('''
