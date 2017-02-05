@@ -46,7 +46,8 @@ def run_check(tmpdir, encoding, requirements=None, constraints=None,
         runner_args.append('-' + verbose * 'v')
         setup_cfg_args.append('-' + verbose * 'v')
     if exclude:
-        runner_args.extend(exclude)
+        for excluded_path in exclude:
+            runner_args.extend(['--exclude', excluded_path])
         setup_cfg['exclude'] = exclude
     runner_args.append(sourcecode)
     setup_cfg['sourcecode'] = sourcecode
@@ -496,7 +497,7 @@ def test_insufficient_args(python_source_file, setupcfg, tmpdir, encoding):
     )
     assert result.exit_code == 2
     assert result.output == ('''
-Usage: check [OPTIONS] [EXCLUDE]... SOURCECODE
+Usage: check [OPTIONS] SOURCECODE
 
 Error: Invalid value: no checks performed; supply either --requirements '''
                              '''or --contraints
@@ -519,7 +520,7 @@ def test_socket(requirements_file, constraints_file, encoding):
         )
         assert result.exit_code == 2
         assert result.output == ('''
-Usage: check [OPTIONS] [EXCLUDE]... SOURCECODE
+Usage: check [OPTIONS] SOURCECODE
 
 Error: Invalid value: could not parse SOURCECODE '%s'; path is either not a '''
                                  '''file or not a directory

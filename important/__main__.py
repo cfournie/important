@@ -70,10 +70,11 @@ if os.path.exists('setup.cfg'):
               type=click.Path(exists=True, file_okay=True, dir_okay=False,
                               writable=False, readable=True,
                               resolve_path=True))
-@click.argument('exclude', nargs=-1,
-                type=click.Path(exists=True, file_okay=True, dir_okay=True,
-                                writable=False, readable=True,
-                                resolve_path=True))
+@click.option('--exclude', '-e', multiple=True,
+              help="Python files or directories to exclude from analysis",
+              type=click.Path(exists=True, file_okay=True, dir_okay=True,
+                              writable=False, readable=True,
+                              resolve_path=True))
 @click.argument('sourcecode', nargs=1,
                 type=click.Path(exists=True, file_okay=True, dir_okay=True,
                                 writable=False, readable=True,
