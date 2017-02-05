@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+from configparser import ConfigParser
 from important.parse import parse_dir_imports, parse_file_imports, \
     parse_requirements
 from important.check import check_unused_requirements, check_import_frequencies
@@ -12,8 +13,23 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 
 CONTEXT_SETTINGS = {
-    'help_option_names': ['-h', '--help']
+    'help_option_names': ['-h', '--help'],
 }
+
+
+# If a setup file exists, override cli arguments with those values
+if os.path.exists('setup.cfg'):
+    config = ConfigParser()
+    config.read('setup.cfg')
+
+    def split(key_value):
+        if key_value[0] in ('sourcecode',):
+            return key_value
+        else:
+            return key_value[0], key_value[1].split()
+
+    CONTEXT_SETTINGS['default_map'] = \
+        dict(map(split, config.items('important')))
 
 
 @click.command(help="Check imports within SOURCECODE (except those files "
