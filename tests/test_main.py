@@ -11,9 +11,12 @@ from click.testing import CliRunner
 
 
 try:
-    from importlib import reload
+    from importlib import reload  # Python 3.4+
 except:
-    pass  # Python 2.7 provides reload built in
+    try:
+        from imp import reload  # Python 3.3
+    except:
+        pass  # Python 2.7 provides reload built in
 
 
 def run_check(tmpdir, encoding, requirements=None, constraints=None,
