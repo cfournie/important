@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import pytest
 import stat
+import sys
 
 from important.parse import Import
 
+
+ENCODING = 'utf-8' if sys.version_info > (3, 0) else 'utf8'
 
 IMPORT_STATEMENT_TO_IMPORT = {
     'import dns': 'dns',
@@ -57,6 +61,8 @@ def package_name(import_name):
 def python_source(import_statement):
     return '''
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function
 from collections import defaultdict
 from math import abs as absolute
 import os
@@ -67,7 +73,7 @@ import re, time, sys
 import os.path
 from os.path import exists, join
 
-print("test")
+print("test😀")
 
 def func():
     import parser
@@ -83,40 +89,46 @@ class A(object):
 @pytest.fixture
 def python_imports(import_name):
     return [
-        ('collections', 2, 0),
-        ('math', 3, 0),
-        ('os', 4, 0),
-        ('copy', 5, 0),
-        ('copy', 6, 0),
-        (import_name, 7, 0),
-        ('re', 8, 0),
-        ('time', 8, 0),
-        ('sys', 8, 0),
-        ('os.path', 9, 0),
-        ('os.path', 10, 0),
-        ('parser', 15, 4),
-        ('enum', 18, 4),
-        ('csv', 21, 8),
+        ('__future__', 3, 0),
+        ('collections', 4, 0),
+        ('math', 5, 0),
+        ('os', 6, 0),
+        ('copy', 7, 0),
+        ('copy', 8, 0),
+        (import_name, 9, 0),
+        ('re', 10, 0),
+        ('time', 10, 0),
+        ('sys', 10, 0),
+        ('os.path', 11, 0),
+        ('os.path', 12, 0),
+        ('parser', 17, 4),
+        ('enum', 20, 4),
+        ('csv', 23, 8),
     ]
 
 
 @pytest.fixture
-def python_file_imports(python_imports, import_name):
+def python_files_parsed():
+    return ('scriptfile', 'test1.py', 'subdir/test3.py')
+
+
+@pytest.fixture
+def python_file_imports(python_imports, import_name, python_files_parsed):
     def create_results(filepath):
         return list(map(
             lambda x: Import(x[0], filepath, x[1], x[2]),
             python_imports
         ))
-    items = create_results('scriptfile')
-    items.extend(create_results('test1.py'))
-    items.extend(create_results('subdir/test3.py'))
+    items = []
+    for python_file_parsed in python_files_parsed:
+        items.extend(create_results(python_file_parsed))
     return items
 
 
 @pytest.fixture
 def python_source_file(tmpdir, python_source):
     python_source_file = tmpdir.join('test.py')
-    python_source_file.write(python_source)
+    python_source_file.write_text(python_source, encoding=ENCODING)
     return str(python_source_file)
 
 
@@ -136,21 +148,25 @@ def __python_source_dir__(tmpdir, python_source):
     # Create a set of python files and a script file within
     # the base or other subdirectories that should be parsed
     python_source_dir = tmpdir.mkdir('dir')
-    python_source_dir.join('test1.py').write(python_source)
+    python_source_dir.join('test1.py').write_text(
+        python_source, encoding=ENCODING)
     python_scriptfile = python_source_dir.join('scriptfile')
-    python_scriptfile.write(python_source)
+    python_scriptfile.write_text(python_source, encoding=ENCODING)
     python_scriptfile.chmod(executable_file_mode)
     python_source_subdir = python_source_dir.mkdir('subdir')
-    python_source_subdir.join('test3.py').write(python_source)
+    python_source_subdir.join('test3.py').write_text(
+        python_source, encoding=ENCODING)
 
     # Add file without shebang, but the correct permissions, that shouldn't be
     # parsed
-    randomfile = python_source_dir.join('randomfile')
-    randomfile.write('\n'.join(python_source.split('\n')[1:]))
+    randomfile = python_source_dir.join('random😀file')
+    randomfile.write_text(
+        '\n'.join(python_source.split('\n')[1:]), encoding=ENCODING)
     randomfile.chmod(executable_file_mode)
 
     # Add file with shebang but wrong permissions that shouldn't be parsed
-    python_source_dir.join('otherrandomfile').write(python_source)
+    python_source_dir.join('otherrandomfile').write_text(
+        python_source, encoding=ENCODING)
 
     return python_source_dir
 

@@ -6,10 +6,10 @@ flake8
 mock
 
 # Modules tested
-dnspython       # Installed as directory `dns`
-IPy             # Cased and installed as top-level Python file `IPy.py`
-numpy           # Has compiled C code; installed as a wheel
-pyyaml          # Installed as directory `yaml`
-beautifulsoup4  # Installed as directory `bs4`
-cssutils        # Installs multiple top level modules
-matplotlib      # Installs multiple top level modules
+dnspython          # Installed as directory `dns`
+IPy                # Cased and installed as top-level Python file `IPy.py`
+numpy              # Has compiled C code; installed as a wheel
+pyyaml             # Installed as directory `yaml`
+beautifulsoup4     # Installed as directory `bs4`
+cssutils           # Installs multiple top level modules
+matplotlib==1.5.3  # Installs multiple top level modules

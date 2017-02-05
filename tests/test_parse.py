@@ -20,7 +20,8 @@ ENCODING = 'utf-8' if sys.version_info > (3, 0) else 'utf8'
 
 
 def test_imports(python_source, python_imports):
-    assert list(_imports(python_source)) == python_imports
+    assert list(_imports(python_source.encode(ENCODING), 'filename.py')) == \
+        python_imports
 
 
 def test_file_imports(python_source_file, python_imports):
@@ -42,7 +43,7 @@ def test_file_imports_with_syntax_error(mocker, python_source_file):
     logger.warning.assert_called_with(
         'Skipping {filename} due to syntax error: {error}'.format(
             filename=python_source_file,
-            error='invalid syntax (test.py, line 21)'
+            error='invalid syntax (test.py, line 23)'
         )
     )
 
@@ -166,10 +167,11 @@ def test_translate_requirement_to_module_names(mocker):
     logger.warning.assert_not_called()
 
     logger.reset_mock()
-    assert translate_requirement_to_module_names('packaging') == \
-        set(['packaging'])
+    assert translate_requirement_to_module_names('not_a_real_package') == \
+        set(['not_a_real_package'])
     logger.warning.assert_called_with("Cannot find install location of \
-'packaging'; please install this package for more accurate name resolution")
+'not_a_real_package'; please install this package for more accurate name \
+resolution")
 
     logger.reset_mock()
     assert translate_requirement_to_module_names('pip') == set(['pip'])

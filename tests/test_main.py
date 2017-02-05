@@ -49,9 +49,7 @@ def format_output(*output, **kwargs):
 
     return '\n'.join(
         (sort_output(
-            output=part.strip().format(
-                package_name=package_name,
-                import_name=import_name),
+            output=part.strip().format(**kwargs),
             package_name=package_name) for part in output)) + '\n'
 
 
@@ -103,7 +101,8 @@ def test_main_verbosity_level_0(requirements_file, constraints_file,
 
 def test_main_verbosity_level_1(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
-                                python_excluded_dir):
+                                python_excluded_dir, python_imports,
+                                python_files_parsed):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -116,13 +115,16 @@ def test_main_verbosity_level_1(requirements_file, constraints_file,
     )
     assert result.exit_code == 0, result.output
     assert result.output == '''
-Parsed 42 imports in 3 files
-'''.lstrip()
+Parsed {num_imports} imports in {num_files} files
+'''.lstrip().format(
+        num_imports=len(python_files_parsed) * len(python_imports),
+        num_files=len(python_files_parsed))
 
 
 def test_main_verbosity_level_2(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
-                                python_excluded_dir, package_name):
+                                python_excluded_dir, package_name,
+                                python_imports, python_files_parsed):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -134,13 +136,17 @@ def test_main_verbosity_level_2(requirements_file, constraints_file,
         sourcecode=python_source_dir,
     )
     assert result.exit_code == 0, result.output
-    assert result.output == format_output('''
-Read requirements:''', '''
+    assert result.output == format_output(
+        '''
+Read requirements:''',
+        '''
 csv
 os
 parser
-{package_name}''', '''
-Read constraints:''', '''
+{package_name}''',
+        '''
+Read constraints:''',
+        '''
 csv>1
 {package_name}<=6
 enum<10
@@ -148,15 +154,21 @@ os<=9
 os.path<=6
 other-unused==0
 re<=3,>1
-unused==0''', '''
-Parsed 42 imports in 3 files
-''', package_name=package_name)
+unused==0''',
+        '''
+Parsed {num_imports} imports in {num_files} files
+''',
+        package_name=package_name,
+        num_imports=len(python_files_parsed) *
+        len(python_imports),
+        num_files=len(python_files_parsed))
 
 
 def test_main_verbosity_level_3(requirements_file, constraints_file,
                                 python_source_dir, python_excluded_file,
                                 python_excluded_dir, package_name,
-                                import_name, python_file_imports):
+                                import_name, python_file_imports,
+                                python_imports, python_files_parsed):
     result = run_check(
         requirements=(requirements_file,),
         constraints=(constraints_file,),
@@ -181,13 +193,17 @@ def test_main_verbosity_level_3(requirements_file, constraints_file,
     )
 
     assert result.exit_code == 0, result.output
-    assert result.output == format_output('''
-Read requirements:''', '''
+    assert result.output == format_output(
+        '''
+Read requirements:''',
+        '''
 csv
 os
 parser
-{package_name}''', '''
-Read constraints:''', '''
+{package_name}''',
+        '''
+Read constraints:''',
+        '''
 csv>1
 {package_name}<=6
 enum<10
@@ -195,11 +211,18 @@ os<=9
 os.path<=6
 other-unused==0
 re<=3,>1
-unused==0''', '''
-Parsed 42 imports in 3 files
+unused==0''',
+        '''
+Parsed {num_imports} imports in {num_files} files
 scriptfile
 subdir/test3.py
-test1.py''', imports, package_name=package_name, import_name=import_name)
+test1.py''',
+        imports,
+        package_name=package_name,
+        import_name=import_name,
+        num_imports=len(python_files_parsed) *
+        len(python_imports),
+        num_files=len(python_files_parsed))
 
 
 def test_main_error_verbosity_level_0(
@@ -226,7 +249,8 @@ def test_main_error_verbosity_level_0(
 def test_main_error_verbosity_level_1(requirements_file_one_unused,
                                       constraints_file_package_disallowed,
                                       python_source_dir, python_excluded_file,
-                                      python_excluded_dir, package_name):
+                                      python_excluded_dir, package_name,
+                                      python_imports, python_files_parsed):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -240,19 +264,22 @@ def test_main_error_verbosity_level_1(requirements_file_one_unused,
     assert result.exit_code == 1
     assert result.output == format_output(
         '''
-Parsed 42 imports in 3 files
+Parsed {num_imports} imports in {num_files} files
 Error: Unused requirements or violated constraints found
 unused (unused requirement)''', '''
 {package_name}==0 (constraint violated by {package_name}==3)
 os<6 (constraint violated by os==9)
 os.path<6 (constraint violated by os.path==6)''',
-        package_name=package_name)
+        package_name=package_name,
+        num_imports=len(python_files_parsed) * len(python_imports),
+        num_files=len(python_files_parsed))
 
 
 def test_main_ignored_error(tmpdir, requirements_file_one_unused,
                             constraints_file_package_disallowed,
                             python_source_dir, python_excluded_file,
-                            python_excluded_dir, package_name):
+                            python_excluded_dir, package_name,
+                            python_imports, python_files_parsed):
     # Test with ignore option
     result = run_check(
         requirements=(requirements_file_one_unused,),
@@ -268,12 +295,14 @@ def test_main_ignored_error(tmpdir, requirements_file_one_unused,
     assert result.exit_code == 1
     assert result.output == format_output(
         '''
-Parsed 42 imports in 3 files
+Parsed {num_imports} imports in {num_files} files
 Error: Unused requirements or violated constraints found''', '''
 {package_name}==0 (constraint violated by {package_name}==3)
 os<6 (constraint violated by os==9)
 os.path<6 (constraint violated by os.path==6)''',
-        package_name=package_name)
+        package_name=package_name,
+        num_imports=len(python_files_parsed) * len(python_imports),
+        num_files=len(python_files_parsed))
 
     # Create ignorefile
     ignorefile = tmpdir.join('ignore.txt')
@@ -295,17 +324,20 @@ os.path<6 (constraint violated by os.path==6)''',
     assert result.exit_code == 1
     assert result.output == format_output(
         '''
-Parsed 42 imports in 3 files
+Parsed {num_imports} imports in {num_files} files
 Error: Unused requirements or violated constraints found''', '''
 {package_name}==0 (constraint violated by {package_name}==3)
 os<6 (constraint violated by os==9)
 os.path<6 (constraint violated by os.path==6)''',
-        package_name=package_name)
+        package_name=package_name,
+        num_imports=len(python_files_parsed) * len(python_imports),
+        num_files=len(python_files_parsed))
 
 
 def test_main_error_just_dir(requirements_file_one_unused,
                              constraints_file_package_disallowed,
-                             python_source_dir, package_name):
+                             python_source_dir, package_name,
+                             python_imports, python_files_parsed):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -315,18 +347,21 @@ def test_main_error_just_dir(requirements_file_one_unused,
     assert result.exit_code == 1
     assert result.output == format_output(
         '''
-Parsed 42 imports in 3 files
+Parsed {num_imports} imports in {num_files} files
 Error: Unused requirements or violated constraints found
 unused (unused requirement)''', '''
 {package_name}==0 (constraint violated by {package_name}==3)
 os<6 (constraint violated by os==9)
 os.path<6 (constraint violated by os.path==6)''',
-        package_name=package_name)
+        package_name=package_name,
+        num_imports=len(python_files_parsed) * len(python_imports),
+        num_files=len(python_files_parsed))
 
 
 def test_main_error_just_file(requirements_file_one_unused,
                               constraints_file_package_disallowed,
-                              python_source_file, package_name):
+                              python_source_file, package_name,
+                              python_imports):
     result = run_check(
         requirements=(requirements_file_one_unused,),
         constraints=(constraints_file_package_disallowed,),
@@ -336,13 +371,13 @@ def test_main_error_just_file(requirements_file_one_unused,
     assert result.exit_code == 1
     assert result.output == format_output(
         '''
-Parsed 14 imports in 1 files
+        Parsed {num_imports} imports in 1 files
 Error: Unused requirements or violated constraints found
 unused (unused requirement)''', '''
 {package_name}==0 (constraint violated by {package_name}==1)
 csv>1 (constraint violated by csv==1)
 re<=3,>1 (constraint violated by re==1)
-''', package_name=package_name)
+''', package_name=package_name, num_imports=len(python_imports))
 
 
 def test_insufficient_args(python_source_file):
