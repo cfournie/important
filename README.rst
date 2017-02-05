@@ -38,6 +38,7 @@ Check for unused requirements using:
 .. code:: bash
 
     $ important -v --requirements requirements.txt .
+    Parsed 52 imports in 8 files
     Error: Unused requirements or violated constraints found
     caniusepython3 (unused requirement)
 
@@ -48,6 +49,7 @@ requirement while you phase it out) using:
 .. code:: bash
 
     $ important -v --constraints constraints.txt .
+    Parsed 52 imports in 8 files
     Error: Unused requirements or violated constraints found
     click<=1 (constraint violated by click==2)
 
@@ -57,6 +59,7 @@ Check for unused requirements but exclude test files using:
 .. code:: bash
 
     $ important -v --requirements requirements.txt **/test_*.py .
+    Parsed 52 imports in 8 files
     Error: Unused requirements or violated constraints found
     caniusepython3 (unused requirement)
 
@@ -66,4 +69,31 @@ Ignore errors related to some of your requirements using:
 .. code:: bash
 
    $ important -v --requirements requirements.txt --ignore caniusepython3 .
+   Parsed 52 imports in 8 files
    $ important -v --requirements requirements.txt --ignorefile ignored.txt .
+   Parsed 52 imports in 8 files
+
+
+Alternatively, you can configure important using a ``setup.cfg`` file in the current working directory, e.g.:
+
+.. code:: ini
+
+   [important]
+   requirements=
+       requirements.txt
+   constraints=
+       constraints.txt
+   ignore=
+       Sphinx
+       flake8
+   exclude=
+       .git
+       .cache
+   sourcecode=.
+
+Then run using:
+
+.. code:: bash
+
+   $ important -v
+   Parsed 52 imports in 8 files
