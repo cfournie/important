@@ -108,7 +108,8 @@ def parse_dir_imports(current_directory, exclusions=None):
                          [os.path.join(root, d) for d in dirs])
         for filename in files:
             filename = filename.decode('utf-8') \
-                if hasattr(filename, 'decode') else filename
+                if hasattr(filename, 'decode') and isinstance(filename, str) \
+                else filename
             filepath = os.path.join(root, filename)
             if filename.endswith('.py') or _is_script(filepath):
                 for statement in parse_file_imports(filepath, exclusions,

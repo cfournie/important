@@ -8,8 +8,6 @@ import sys
 from important.parse import Import
 
 
-ENCODING = 'utf-8' if sys.version_info > (3, 0) else 'utf8'
-
 IMPORT_STATEMENT_TO_IMPORT = {
     'import dns': 'dns',
     'import IPy': 'IPy',
@@ -47,6 +45,11 @@ if sys.version_info < (3, 0):
     IMPORT_TO_PACKAGE.update({
         'wsgiref': 'wsgiref',
     })
+
+
+@pytest.fixture
+def encoding():
+    return 'utf-8' if sys.version_info > (3, 0) else 'utf8'
 
 
 @pytest.fixture(params=IMPORT_STATEMENT_TO_IMPORT.items())
@@ -138,9 +141,9 @@ def python_file_imports(python_imports, import_name, python_files_parsed):
 
 
 @pytest.fixture
-def python_source_file(tmpdir, python_source):
+def python_source_file(tmpdir, python_source, encoding):
     python_source_file = tmpdir.join('test.py')
-    python_source_file.write_text(python_source, encoding=ENCODING)
+    python_source_file.write_text(python_source, encoding)
     return str(python_source_file)
 
 
@@ -153,7 +156,7 @@ def binary_file(tmpdir):
 
 
 @pytest.fixture
-def __python_source_dir__(tmpdir, python_source):
+def __python_source_dir__(tmpdir, python_source, encoding):
     executable_file_mode = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH \
         | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
 
@@ -161,24 +164,24 @@ def __python_source_dir__(tmpdir, python_source):
     # the base or other subdirectories that should be parsed
     python_source_dir = tmpdir.mkdir('dir')
     python_source_dir.join('test1.py').write_text(
-        python_source, encoding=ENCODING)
+        python_source, encoding=encoding)
     python_scriptfile = python_source_dir.join('scriptfile')
-    python_scriptfile.write_text(python_source, encoding=ENCODING)
+    python_scriptfile.write_text(python_source, encoding=encoding)
     python_scriptfile.chmod(executable_file_mode)
     python_source_subdir = python_source_dir.mkdir('subdir')
     python_source_subdir.join('test3.py').write_text(
-        python_source, encoding=ENCODING)
+        python_source, encoding=encoding)
 
     # Add file without shebang, but the correct permissions, that shouldn't be
     # parsed
     randomfile = python_source_dir.join('random😀file')
     randomfile.write_text(
-        '\n'.join(python_source.split('\n')[1:]), encoding=ENCODING)
+        '\n'.join(python_source.split('\n')[1:]), encoding=encoding)
     randomfile.chmod(executable_file_mode)
 
     # Add file with shebang but wrong permissions that shouldn't be parsed
     python_source_dir.join('otherrandomfile').write_text(
-        python_source, encoding=ENCODING)
+        python_source, encoding=encoding)
 
     return python_source_dir
 

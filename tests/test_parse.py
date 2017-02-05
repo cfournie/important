@@ -5,7 +5,6 @@ import codecs
 import os
 import pytest
 import stat
-import sys
 
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
     parse_requirements, Import, RE_SHEBANG, _is_script, \
@@ -16,11 +15,9 @@ try:
 except:
     from mock import Mock
 
-ENCODING = 'utf-8' if sys.version_info > (3, 0) else 'utf8'
 
-
-def test_imports(python_source, python_imports):
-    assert list(_imports(python_source.encode(ENCODING), 'filename.py')) == \
+def test_imports(python_source, python_imports, encoding):
+    assert list(_imports(python_source.encode(encoding), 'filename.py')) == \
         python_imports
 
 
@@ -69,7 +66,7 @@ print('uʍop ǝpısdn')'''
     logger.warning.assert_not_called()
 
 
-def test_file_imports_binary_file(mocker, binary_file):
+def test_file_imports_binary_file(mocker, binary_file, encoding):
     logger = Mock()
     mocker.patch('important.parse.logger', logger)
 
@@ -79,12 +76,12 @@ def test_file_imports_binary_file(mocker, binary_file):
         'Skipping {filename} due to decoding error: {error}'.format(
             filename=binary_file,
             error="'{encoding}' codec can't decode byte 0xff in position 0:\
- invalid start byte".format(encoding=ENCODING)
+ invalid start byte".format(encoding=encoding)
         )
     )
 
 
-def test_is_script_binary_file(mocker, binary_file):
+def test_is_script_binary_file(mocker, binary_file, encoding):
     logger = Mock()
     mocker.patch('important.parse.logger', logger)
 
@@ -96,7 +93,7 @@ def test_is_script_binary_file(mocker, binary_file):
         'Skipping {filename} due to decoding error: {error}'.format(
             filename=binary_file,
             error="'{encoding}' codec can't decode byte 0xff in position 0:\
- invalid start byte".format(encoding=ENCODING)
+ invalid start byte".format(encoding=encoding)
         )
     )
 

@@ -8,7 +8,7 @@ install:
 	pip install -r dev_requirements.txt
 test: install
 	py.test -vv --cov=important tests/
-	important -v --requirements requirements.txt --constraints constraints.txt .
+	important -v
 
 coverage:
 	py.test -vv --cov=important --cov-report html tests/
