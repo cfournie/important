@@ -58,7 +58,7 @@ Check for unused requirements but exclude test files using:
 
 .. code:: bash
 
-    $ important -v --requirements requirements.txt **/test_*.py .
+    $ important -v --requirements requirements.txt --exclude **/test_*.py .
     Parsed 52 imports in 8 files
     Error: Unused requirements or violated constraints found
     caniusepython3 (unused requirement)
@@ -88,7 +88,6 @@ Alternatively, you can configure important using a ``setup.cfg`` file in the cur
        flake8
    exclude=
        .git
-       .cache
    sourcecode=.
 
 Then run using:
