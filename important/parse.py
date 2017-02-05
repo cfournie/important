@@ -147,6 +147,10 @@ def translate_requirement_to_module_names(requirement_name):
             filepath.endswith('.py')
 
     for result in search_packages_info([requirement_name]):
+        if 'files' not in result:
+            # Assume that only one module is installed in this case
+            continue
+
         # Handle modules that are installed as folders in site-packages
         folders = map(lambda filepath: os.path.dirname(filepath),
                       result['files'])

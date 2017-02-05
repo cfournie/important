@@ -33,7 +33,7 @@ IMPORT_TO_PACKAGE = {
     'matplotlib': 'matplotlib',
     'cssutils': 'cssutils',
     'pylab': 'matplotlib',
-    'matplotlib.pyplot': 'matplotlib'
+    'matplotlib.pyplot': 'matplotlib',
 }
 
 
