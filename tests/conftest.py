@@ -23,6 +23,12 @@ IMPORT_STATEMENT_TO_IMPORT = {
     'import cssutils': 'cssutils',
 }
 
+# Add Python 2.7 and lower tests
+if sys.version_info < (3, 0):
+    IMPORT_STATEMENT_TO_IMPORT.update({
+        'import wsgiref': 'wsgiref',
+    })
+
 IMPORT_TO_PACKAGE = {
     # package installed with differing name ('dns' folder)
     'dns': 'dnspython',
@@ -35,6 +41,12 @@ IMPORT_TO_PACKAGE = {
     'pylab': 'matplotlib',
     'matplotlib.pyplot': 'matplotlib',
 }
+
+# Add Python 2.7 and lower tests
+if sys.version_info < (3, 0):
+    IMPORT_TO_PACKAGE.update({
+        'wsgiref': 'wsgiref',
+    })
 
 
 @pytest.fixture(params=IMPORT_STATEMENT_TO_IMPORT.items())
