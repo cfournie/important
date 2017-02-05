@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from collections import defaultdict
-from important.parse import translate_requirement_to_module_names
+from important.parse import translate_req_to_module_names
 
 
 def _base_module_name(import_statement):
@@ -16,7 +16,7 @@ def check_unused_requirements(imports, requirements):
     # Translate package names into module names that can be imported
     module_requirements = {}
     for requirement in requirements:
-        modules = translate_requirement_to_module_names(requirement)
+        modules = translate_req_to_module_names(requirement)
         for module in modules:
             module_requirements[module] = requirement
     # Translate imported modules into package names
@@ -46,11 +46,10 @@ def check_import_frequencies(imports, requirements):
     module_frequencies = frequency_count_imports(imports)
     violations = dict()
     for requirement, constraint in constraints.items():
-        modules = translate_requirement_to_module_names(requirement)
+        modules = translate_req_to_module_names(requirement)
         for module in modules:
-            if module in module_frequencies \
-                    and not constraint.contains(
-                        str(module_frequencies[module])):
+            if module in module_frequencies and not constraint.contains(
+                    str(module_frequencies[module])):
                 violations[requirement] = (constraint,
                                            module_frequencies[module])
     return violations

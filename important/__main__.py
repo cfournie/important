@@ -1,9 +1,11 @@
-import click
 import logging
 import os
 import sys
 
 from configparser import ConfigParser
+
+import click
+
 from important.parse import parse_dir_imports, parse_file_imports, \
     parse_requirements
 from important.check import check_unused_requirements, check_import_frequencies
@@ -19,8 +21,8 @@ CONTEXT_SETTINGS = {
 
 # If a setup file exists, override cli arguments with those values
 if os.path.exists('setup.cfg'):
-    config = ConfigParser()
-    config.read('setup.cfg')
+    CONFIG = ConfigParser()
+    CONFIG.read('setup.cfg')
 
     def split(key_value):
         if key_value[0] in ('sourcecode',):
@@ -29,7 +31,7 @@ if os.path.exists('setup.cfg'):
             return key_value[0], key_value[1].split()
 
     CONTEXT_SETTINGS['default_map'] = \
-        dict(map(split, config.items('important')))
+        dict(map(split, CONFIG.items('important')))
 
 
 @click.command(help="Check imports within SOURCECODE (except those files "
@@ -102,10 +104,8 @@ def check(requirements, constraints, ignore, ignorefile, exclude, sourcecode,
             (r.name for r in parse_requirements(ignorefile_path))
         )
     if ignore:
-        parsed_requirements = filter(
-            lambda r: r.name not in ignore,
-            parsed_requirements
-        )
+        parsed_requirements = [r for r in parsed_requirements
+                               if r.name not in ignore]
 
     if verbose >= 2:
         click.echo('Read requirements:')
