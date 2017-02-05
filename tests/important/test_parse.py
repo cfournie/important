@@ -8,7 +8,7 @@ import stat
 
 from important.parse import _imports, parse_file_imports, parse_dir_imports, \
     parse_requirements, Import, RE_SHEBANG, _is_script, \
-    translate_requirement_to_module_names
+    translate_req_to_module_names
 
 try:
     from unittest.mock import Mock
@@ -29,7 +29,7 @@ def test_file_imports(python_source_file, python_imports):
 
 def test_file_imports_with_syntax_error(mocker, python_source_file):
     logger = Mock()
-    mocker.patch('important.parse.logger', logger)
+    mocker.patch('important.parse.LOGGER', logger)
 
     # Alter file so that it won't compile
     with open(python_source_file, 'a') as fh:
@@ -38,10 +38,9 @@ def test_file_imports_with_syntax_error(mocker, python_source_file):
     # Attempt to parse and assert that it logged a warning
     list(parse_file_imports(python_source_file))
     logger.warning.assert_called_with(
-        'Skipping {filename} due to syntax error: {error}'.format(
-            filename=python_source_file,
-            error='invalid syntax (test.py, line 23)'
-        )
+        'Skipping %(filename)s due to syntax error: %(error)s',
+        filename=python_source_file,
+        error='invalid syntax (test.py, line 23)'
     )
 
 
@@ -56,7 +55,7 @@ print('uʍop ǝpısdn')'''
         )
 
     logger = Mock()
-    mocker.patch('important.parse.logger', logger)
+    mocker.patch('important.parse.LOGGER', logger)
 
     # Attempt to parse and assert that it logged a warning
     assert list(parse_file_imports(python_source_file)) == [
@@ -68,33 +67,31 @@ print('uʍop ǝpısdn')'''
 
 def test_file_imports_binary_file(mocker, binary_file, encoding):
     logger = Mock()
-    mocker.patch('important.parse.logger', logger)
+    mocker.patch('important.parse.LOGGER', logger)
 
     # Attempt to parse and assert that it logged a warning
     list(parse_file_imports(binary_file))
     logger.warning.assert_called_with(
-        'Skipping {filename} due to decoding error: {error}'.format(
-            filename=binary_file,
-            error="'{encoding}' codec can't decode byte 0xff in position 0:\
+        'Skipping %(filename)s due to decode error: %(error)s',
+        filename=binary_file,
+        error="'{encoding}' codec can't decode byte 0xff in position 0:\
  invalid start byte".format(encoding=encoding)
-        )
     )
 
 
 def test_is_script_binary_file(mocker, binary_file, encoding):
     logger = Mock()
-    mocker.patch('important.parse.logger', logger)
+    mocker.patch('important.parse.LOGGER', logger)
 
     # Make the file executable to appear to be a script
     os.chmod(binary_file, stat.S_IXUSR | stat.S_IRUSR)
     # Attempt to parse and assert that it logged a warning
     _is_script(binary_file)
     logger.warning.assert_called_with(
-        'Skipping {filename} due to decoding error: {error}'.format(
-            filename=binary_file,
-            error="'{encoding}' codec can't decode byte 0xff in position 0:\
+        'Skipping %(filename)s due to decode error: %(error)s',
+        filename=binary_file,
+        error="'{encoding}' codec can't decode byte 0xff in position 0:\
  invalid start byte".format(encoding=encoding)
-        )
     )
 
 
@@ -156,33 +153,34 @@ def test_requirements_editable(tmpdir):
         'Cannot parse SomeDependency: editable projects unsupported'
 
 
-def test_translate_requirement_to_module_names(mocker):
+def test_translate_req_to_module_names(mocker):
     logger = Mock()
-    mocker.patch('important.parse.logger', logger)
+    mocker.patch('important.parse.LOGGER', logger)
 
-    assert translate_requirement_to_module_names('click') == set(['click'])
+    assert translate_req_to_module_names('click') == set(['click'])
     logger.warning.assert_not_called()
 
     logger.reset_mock()
-    assert translate_requirement_to_module_names('not_a_real_package') == \
+    assert translate_req_to_module_names('not_a_real_package') == \
         set(['not_a_real_package'])
     logger.warning.assert_called_with("Cannot find install location of \
-'not_a_real_package'; please install this package for more accurate name \
-resolution")
+'%s'; please install this package for more accurate name \
+resolution", 'not_a_real_package')
 
     logger.reset_mock()
-    assert translate_requirement_to_module_names('pip') == set(['pip'])
+    assert translate_req_to_module_names('pip') == set(['pip'])
     logger.warning.assert_not_called()
 
     logger.reset_mock()
-    assert translate_requirement_to_module_names('dnspython') == set(['dns'])
+    assert translate_req_to_module_names('dnspython') == set(['dns'])
     logger.warning.assert_not_called()
 
     logger.reset_mock()
-    assert translate_requirement_to_module_names('fake') == set(['fake'])
+    assert translate_req_to_module_names('fake') == set(['fake'])
     logger.warning.assert_called_with("Cannot find install location of \
-'fake'; please install this package for more accurate name resolution")
+'%s'; please install this package for more accurate name resolution",
+                                      'fake')
 
     logger.reset_mock()
-    assert translate_requirement_to_module_names('os.path') == set(['os.path'])
+    assert translate_req_to_module_names('os.path') == set(['os.path'])
     logger.warning.assert_not_called()

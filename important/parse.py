@@ -1,16 +1,19 @@
 from __future__ import unicode_literals
 
 import ast
+import io
 import logging
 import os
-import pip
 import pkgutil
 import re
 import stat
 import sys
 
 from collections import namedtuple
-from io import open
+from itertools import chain
+
+import pip
+
 from pip.commands.show import search_packages_info
 from pip.req import parse_requirements as pip_parse_requirements
 
@@ -22,7 +25,7 @@ ALL_MODULES = set(
 
 Import = namedtuple('Import', ['module', 'filename', 'lineno', 'col_offset'])
 
-logger = logging.getLogger()
+LOGGER = logging.getLogger()
 
 
 def _imports(source, filepath):
@@ -43,14 +46,12 @@ def _imports(source, filepath):
 
 def is_excluded(path, exclusions):
     if exclusions:
-        generators = (
-            filter(lambda e: os.path.samefile(path, e), exclusions),
-            filter(lambda e: os.path.samefile(os.path.dirname(path), e),
-                   exclusions)
-        )
-        for generator in generators:
-            for _ in generator:
-                return True
+        for _ in chain(
+                (e for e in exclusions if os.path.samefile(path, e)),
+                (e for e in exclusions if
+                 os.path.samefile(os.path.dirname(path), e)),
+        ):
+            return True
     return False
 
 
@@ -64,37 +65,34 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     display_filepath = os.path.relpath(filepath, directory)
     # Compile and parse abstract syntax tree and find import statements
     try:
-        with open(filepath) as fh:
-            source = fh.read()
+        with io.open(filepath) as handle:
+            source = handle.read()
         # Remove lines with only comments (e.g. PEP 263 encodings)
         source = '\n'.join(
-            map(
-                lambda l: '' if l.startswith('#') else l,
-                source.split('\n')
-            )
-        )
+            '' if l.startswith('#') else l for l in source.split('\n'))
         # Parse
         for statement in _imports(source, filepath):
             module, lineno, col_offset = statement
             yield Import(module, display_filepath, lineno, col_offset)
-    except SyntaxError as e:
-        logger.warning('Skipping {filename} due to syntax error: {error}'
-                       .format(filename=e.filename, error=str(e)))
-    except UnicodeDecodeError as e:
-        logger.warning('Skipping {filename} due to decoding error: {error}'
-                       .format(filename=filepath, error=str(e)))
+    except SyntaxError as exc:
+        LOGGER.warning('Skipping %(filename)s due to syntax error: %(error)s',
+                       filename=exc.filename, error=str(exc))
+    except UnicodeDecodeError as exc:
+        LOGGER.warning('Skipping %(filename)s due to decode error: %(error)s',
+                       filename=filepath, error=str(exc))
 
 
 def _is_script(filepath):
     if os.access(filepath, os.F_OK | os.R_OK | os.X_OK) and \
        not stat.S_ISSOCK(os.stat(filepath).st_mode):
         try:
-            with open(filepath, mode='r') as fh:
-                first_line = fh.readline()
+            with io.open(filepath, mode='r') as handle:
+                first_line = handle.readline()
             return bool(RE_SHEBANG.match(first_line))
-        except UnicodeDecodeError as e:
-            logger.warning('Skipping {filename} due to decoding error: {error}'
-                           .format(filename=filepath, error=str(e)))
+        except UnicodeDecodeError as exc:
+            LOGGER.warning(
+                'Skipping %(filename)s due to decode error: %(error)s',
+                filename=filepath, error=str(exc))
     return False
 
 
@@ -104,8 +102,7 @@ def parse_dir_imports(current_directory, exclusions=None):
         return
     # Iterate over all Python/script files
     for root, dirs, files in os.walk(current_directory, topdown=True):
-        dirs[:] = filter(lambda d: d not in exclusions,
-                         [os.path.join(root, d) for d in dirs])
+        dirs[:] = [os.path.join(root, d) for d in dirs if d not in exclusions]
         for filename in files:
             filename = filename.decode('utf-8') \
                 if hasattr(filename, 'decode') and isinstance(filename, str) \
@@ -132,7 +129,7 @@ def parse_requirements(filename):
             yield requirement
 
 
-def translate_requirement_to_module_names(requirement_name):
+def translate_req_to_module_names(requirement_name):
     provides = set()
 
     def is_module_folder(filepath):
@@ -152,8 +149,7 @@ def translate_requirement_to_module_names(requirement_name):
             # Assume that only one module is installed in this case
             continue
         # Handle modules that are installed as folders in site-packages
-        folders = map(lambda filepath: os.path.dirname(filepath),
-                      result['files'])
+        folders = [os.path.dirname(filepath) for filepath in result['files']]
         folders = filter(is_module_folder, folders)
         provides |= set(folders)
         # Handle modules that are installed as .py files in site-packages
@@ -166,7 +162,6 @@ def translate_requirement_to_module_names(requirement_name):
     else:
         module_name = requirement_name.split('.')[0]
         if module_name not in ALL_MODULES:
-            logger.warning("Cannot find install location of '{requirement}'; please \
-install this package for more accurate name resolution"
-                           .format(requirement=requirement_name))
+            LOGGER.warning("Cannot find install location of '%s'; please \
+install this package for more accurate name resolution", requirement_name)
         return provides if provides else set([requirement_name])
