@@ -10,6 +10,7 @@ import stat
 import sys
 
 from collections import namedtuple
+from itertools import chain
 
 import pip
 
@@ -45,14 +46,12 @@ def _imports(source, filepath):
 
 def is_excluded(path, exclusions):
     if exclusions:
-        generators = (
-            filter(lambda e: os.path.samefile(path, e), exclusions),
-            filter(lambda e: os.path.samefile(os.path.dirname(path), e),
-                   exclusions)
-        )
-        for generator in generators:
-            for _ in generator:
-                return True
+        for _ in chain(
+                (e for e in exclusions if os.path.samefile(path, e)),
+                (e for e in exclusions if
+                 os.path.samefile(os.path.dirname(path), e)),
+        ):
+            return True
     return False
 
 
@@ -70,11 +69,7 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
             source = handle.read()
         # Remove lines with only comments (e.g. PEP 263 encodings)
         source = '\n'.join(
-            map(
-                lambda l: '' if l.startswith('#') else l,
-                source.split('\n')
-            )
-        )
+            '' if l.startswith('#') else l for l in source.split('\n'))
         # Parse
         for statement in _imports(source, filepath):
             module, lineno, col_offset = statement
@@ -107,8 +102,7 @@ def parse_dir_imports(current_directory, exclusions=None):
         return
     # Iterate over all Python/script files
     for root, dirs, files in os.walk(current_directory, topdown=True):
-        dirs[:] = filter(lambda d: d not in exclusions,
-                         [os.path.join(root, d) for d in dirs])
+        dirs[:] = [os.path.join(root, d) for d in dirs if d not in exclusions]
         for filename in files:
             filename = filename.decode('utf-8') \
                 if hasattr(filename, 'decode') and isinstance(filename, str) \

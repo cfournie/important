@@ -129,7 +129,7 @@ def check(requirements, constraints, ignore, ignorefile, exclude, sourcecode,
         raise click.BadParameter("could not parse SOURCECODE '%s'; path is "
                                  "either not a file or not a directory" %
                                  sourcecode)
-    filenames = set(map(lambda i: i.filename, imports))
+    filenames = set(i.filename for i in imports)
 
     output = []
 
