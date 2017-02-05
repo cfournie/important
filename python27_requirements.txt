@@ -1,0 +1,2 @@
+# Modules tested (Python 2.7 or lower)
+wsgiref  # Returns no files from search_packages
