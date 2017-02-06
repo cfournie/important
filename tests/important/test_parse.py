@@ -41,9 +41,8 @@ def test_file_imports_with_syntax_error(mocker, python_source_file):
     # Attempt to parse and assert that it logged a warning
     list(parse_file_imports(python_source_file))
     logger.warning.assert_called_with(
-        'Skipping %(filename)s due to syntax error: %(error)s',
-        filename=python_source_file,
-        error='invalid syntax (test.py, line 23)'
+        'Skipping %s due to syntax error: %s', python_source_file,
+        'invalid syntax (test.py, line 23)'
     )
 
 
@@ -75,9 +74,8 @@ def test_file_imports_binary_file(mocker, binary_file, encoding):
     # Attempt to parse and assert that it logged a warning
     list(parse_file_imports(binary_file))
     logger.warning.assert_called_with(
-        'Skipping %(filename)s due to decode error: %(error)s',
-        filename=binary_file,
-        error="'{encoding}' codec can't decode byte 0xff in position 0:\
+        'Skipping %s due to decode error: %s', binary_file,
+        "'{encoding}' codec can't decode byte 0xff in position 0:\
  invalid start byte".format(encoding=encoding)
     )
 
@@ -91,9 +89,8 @@ def test_is_script_binary_file(mocker, binary_file, encoding):
     # Attempt to parse and assert that it logged a warning
     _is_script(binary_file)
     logger.warning.assert_called_with(
-        'Skipping %(filename)s due to decode error: %(error)s',
-        filename=binary_file,
-        error="'{encoding}' codec can't decode byte 0xff in position 0:\
+        'Skipping %s due to decode error: %s', binary_file,
+        "'{encoding}' codec can't decode byte 0xff in position 0:\
  invalid start byte".format(encoding=encoding)
     )
 
