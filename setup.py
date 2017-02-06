@@ -1,20 +1,34 @@
 #!/usr/bin/env python
+# Copyright (c) 2016-2017 Chris Fournier. All rights reserved.
+# Use of this source code is governed by a MIT-style license that can be found
+# in the LICENSE file.
+import re
+
 from distutils.core import setup
 
 with open('README.rst') as fh:
     long_description = fh.read()
 
+with open('important/__init__.py', 'r') as fd:
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                        fd.read(), re.MULTILINE).group(1)
+
+if not version:
+    raise RuntimeError('Cannot find version information')
+
 setup(
     name='important',
-    version='0.0.0.dev1',
-    description='Import and requirements checking utilities',
+    version=version,
+    description='Utility to find unused packages in requirements \
+ and to constrain package usage',
     long_description=long_description,
     url='https://github.com/cfournie/important',
+    download_url='https://github.com/cfournie/important/tarball/0.1.0',
     author='Chris Fournier',
     author_email='chris.m.fournier@gmail.com',
     license='MIT',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Testing',
@@ -34,5 +48,5 @@ setup(
             'important = important.__main__:check',
         ],
     },
-    install_requires=['pip', 'click'],
+    install_requires=['pip>=8', 'click>=5'],
 )
