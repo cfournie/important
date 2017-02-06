@@ -23,7 +23,7 @@ setup(
  and to constrain package usage',
     long_description=long_description,
     url='https://github.com/cfournie/important',
-    download_url='https://github.com/cfournie/important/tarball/0.1.0',
+    download_url='https://github.com/cfournie/important/tarball/%s' % version,
     author='Chris Fournier',
     author_email='chris.m.fournier@gmail.com',
     license='MIT',
