@@ -15,11 +15,17 @@ A simple source code import checker that checks your project for whether you:
 Installation
 ------------
 
-Coming to pypi soon, but in the meantime, install from source using:
+Install the latest stable version from PyPI using:
 
 .. code:: bash
 
-    $ pip install git+https://github.com/cfournie/important.git
+    pip install important
+
+Otherwise, to grab the latest version on master, use:
+    
+.. code:: bash
+          
+    pip install git+https://github.com/cfournie/important.git
 
 Requirements
 ------------
@@ -28,7 +34,7 @@ This works best when run from a virtualenv where your project's requirements
 are installed (to translate requirements to module names).
 
 This tool requires that it be installed with the same Python version as the
-source code that's analyzing and that the source code is syntactically correct.
+source code that it's analyzing and that the source code is syntactically correct.
 
 Usage
 -----
@@ -74,7 +80,7 @@ Ignore errors related to some of your requirements using:
    Parsed 52 imports in 8 files
 
 
-Alternatively, you can configure important using a ``setup.cfg`` file in the current working directory, e.g.:
+Alternatively, you can configure ``important`` using a ``setup.cfg`` file in the current working directory, e.g.:
 
 .. code:: ini
 
