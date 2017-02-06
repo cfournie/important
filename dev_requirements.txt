@@ -8,6 +8,7 @@ pylint       # Linting
 autopep8     # Autolinting
 ipdb         # Interactive debugger
 ipython      # Interactive shell
+wheel        # Used to create wheels
 
 # Modules tested
 dnspython          # Installed as directory `dns`

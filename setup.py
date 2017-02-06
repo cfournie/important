@@ -4,7 +4,10 @@
 # in the LICENSE file.
 import re
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+except:
+    from distutils.core import setup
 
 with open('README.rst') as fh:
     long_description = fh.read()
@@ -48,5 +51,9 @@ setup(
             'important = important.__main__:check',
         ],
     },
-    install_requires=['pip>=8', 'click>=5'],
+    install_requires=[
+        'pip>=8',
+        'click>=5',
+        'setuptools>=0.9',
+    ],
 )
