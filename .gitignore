@@ -5,4 +5,5 @@ htmlcov
 .coverage
 *.swp
 MANIFEST
-dist
+dist/
+build/

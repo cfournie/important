@@ -78,11 +78,11 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
             module, lineno, col_offset = statement
             yield Import(module, display_filepath, lineno, col_offset)
     except SyntaxError as exc:
-        LOGGER.warning('Skipping %(filename)s due to syntax error: %(error)s',
-                       filename=exc.filename, error=str(exc))
+        LOGGER.warning('Skipping %s due to syntax error: %s',
+                       exc.filename, str(exc))
     except UnicodeDecodeError as exc:
-        LOGGER.warning('Skipping %(filename)s due to decode error: %(error)s',
-                       filename=filepath, error=str(exc))
+        LOGGER.warning('Skipping %s due to decode error: %s',
+                       filepath, str(exc))
 
 
 def _is_script(filepath):
@@ -94,8 +94,7 @@ def _is_script(filepath):
             return bool(RE_SHEBANG.match(first_line))
         except UnicodeDecodeError as exc:
             LOGGER.warning(
-                'Skipping %(filename)s due to decode error: %(error)s',
-                filename=filepath, error=str(exc))
+                'Skipping %s due to decode error: %s', filepath, str(exc))
     return False
 
 
