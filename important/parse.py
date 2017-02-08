@@ -68,7 +68,7 @@ def parse_file_imports(filepath, exclusions=None, directory=None):
     display_filepath = os.path.relpath(filepath, directory)
     # Compile and parse abstract syntax tree and find import statements
     try:
-        with io.open(filepath) as handle:
+        with io.open(filepath, mode='rt', encoding='utf8') as handle:
             source = handle.read()
         # Remove lines with only comments (e.g. PEP 263 encodings)
         source = '\n'.join(
@@ -89,7 +89,7 @@ def _is_script(filepath):
     if os.access(filepath, os.F_OK | os.R_OK | os.X_OK) and \
        not stat.S_ISSOCK(os.stat(filepath).st_mode):
         try:
-            with io.open(filepath, mode='r') as handle:
+            with io.open(filepath, mode='rt', encoding='utf8') as handle:
                 first_line = handle.readline()
             return bool(RE_SHEBANG.match(first_line))
         except UnicodeDecodeError as exc:
@@ -106,7 +106,7 @@ def parse_dir_imports(current_directory, exclusions=None):
     for root, dirs, files in os.walk(current_directory, topdown=True):
         dirs[:] = [os.path.join(root, d) for d in dirs if d not in exclusions]
         for filename in files:
-            filename = filename.decode('utf-8') \
+            filename = filename.decode('utf8') \
                 if hasattr(filename, 'decode') and isinstance(filename, str) \
                 else filename
             filepath = os.path.join(root, filename)
